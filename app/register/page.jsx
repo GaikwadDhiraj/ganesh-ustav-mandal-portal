@@ -48,7 +48,11 @@ export default function RegisterMandalPage() {
     contactPerson: "",
     contactPhone: "",
     contactEmail: "",
-    aboutText: "",
+    
+    // 2 Separate Description Fields with Limits
+    shortDescription: "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे. बाप्पाचे दर्शन घ्या व आशीर्वाद मिळवा.", // Max 150 Chars
+    aboutText: "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे. श्रींच्या चरणी आपली सेवा व प्रार्थना अर्पित करा आणि बाप्पाचे आशीर्वाद प्राप्त करा.", // Max 1000 Chars
+
     heroImageUrl: "/hero-main-ganesha.jpg",
     upiId: "",
     qrCodeUrl: "",
@@ -112,7 +116,7 @@ export default function RegisterMandalPage() {
     setMembers(updated);
   };
 
-  // Gallery Handlers (Max 10 photos limit)
+  // Gallery Handlers
   const addGallery = () => {
     if (gallery.length >= 10) {
       toast.error("गॅलरीमध्ये जास्तीत जास्त 10 फोटो जोडता येतात.");
@@ -237,9 +241,9 @@ export default function RegisterMandalPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-600">
                 <Sparkles className="w-5 h-5 text-amber-500" />
-                १. मंडळाची प्राथमिक माहिती (Basic Info)
+                १. मंडळाची प्राथमिक माहिती व वर्णने (Basic Info & Descriptions)
               </CardTitle>
-              <CardDescription>मंडळाचे अधिकृत नाव, पत्ता व घोषवाक्य प्रविष्ट करा.</CardDescription>
+              <CardDescription>मंडळाचे अधिकृत नाव, पत्ता व २ स्वतंत्र वर्णने (संक्षिप्त व सविस्तर) प्रविष्ट करा.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
@@ -304,16 +308,46 @@ export default function RegisterMandalPage() {
                 />
               </div>
 
+              {/* 1. Short Description (Max 150 Chars) */}
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-gray-800">मंडळाविषयी सविस्तर माहिती (About Mandal)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-amber-900">
+                    १. संक्षिप्त माहिती (Short Description - मुख्य पृष्ठावर दिसणारे) *
+                  </label>
+                  <span className={`text-xs font-bold ${formData.shortDescription.length > 150 ? "text-red-600" : "text-gray-500"}`}>
+                    {formData.shortDescription.length} / 150 अक्षरे (Limit: 150)
+                  </span>
+                </div>
+                <Textarea
+                  name="shortDescription"
+                  rows={2}
+                  maxLength={150}
+                  placeholder="मुख्य पृष्ठावरील बाप्पाच्या फोटोशेजारी दाखवण्यासाठी १-२ ओळींत संक्षिप्त माहिती लिहा (कमाल 150 अक्षरे)..."
+                  value={formData.shortDescription}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              {/* 2. Detailed Description (Max 1000 Chars) */}
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-amber-900">
+                    २. सविस्तर माहिती (Detailed Description - मंडळाबद्दल माहिती सेक्शनमध्ये दिसणारे) *
+                  </label>
+                  <span className={`text-xs font-bold ${formData.aboutText.length > 1000 ? "text-red-600" : "text-gray-500"}`}>
+                    {formData.aboutText.length} / 1000 अक्षरे (Limit: 1000)
+                  </span>
+                </div>
                 <Textarea
                   name="aboutText"
-                  rows={4}
-                  placeholder="मंडळाचा इतिहास, सामाजिक कार्य, व परंपरा याविषयी माहिती द्या..."
+                  rows={5}
+                  maxLength={1000}
+                  placeholder="मंडळाचा इतिहास, सामाजिक कार्य, व परंपरा याविषयी सविस्तर माहिती लिहा (कमाल 1000 अक्षरे)..."
                   value={formData.aboutText}
                   onChange={handleInputChange}
                 />
               </div>
+
             </CardContent>
           </Card>
 

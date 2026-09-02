@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, UserCheck, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,7 +11,48 @@ export default function SlidingMembersSection({ members = [] }) {
 
   if (!members || members.length === 0) return null;
 
-  const scroll = (direction) => {
+  // Continuous Auto Scroll Effect
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let animationId;
+    let scrollSpeed = 0.8;
+
+    const autoScroll = () => {
+      if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+        el.scrollLeft = 0;
+      } else {
+        el.scrollLeft += scrollSpeed;
+      }
+      animationId = requestAnimationFrame(autoScroll);
+    };
+
+    animationId = requestAnimationFrame(autoScroll);
+
+    // Pause auto scroll on user hover/touch
+    const pauseScroll = () => cancelAnimationFrame(animationId);
+    const resumeScroll = () => {
+      animationId = requestAnimationFrame(autoScroll);
+    };
+
+    el.addEventListener("mouseenter", pauseScroll);
+    el.addEventListener("mouseleave", resumeScroll);
+    el.addEventListener("touchstart", pauseScroll);
+    el.addEventListener("touchend", resumeScroll);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      if (el) {
+        el.removeEventListener("mouseenter", pauseScroll);
+        el.removeEventListener("mouseleave", resumeScroll);
+        el.removeEventListener("touchstart", pauseScroll);
+        el.removeEventListener("touchend", resumeScroll);
+      }
+    };
+  }, [members]);
+
+  const scrollManual = (direction) => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
       const scrollAmount = clientWidth * 0.75;
@@ -22,6 +63,9 @@ export default function SlidingMembersSection({ members = [] }) {
     }
   };
 
+  // Duplicate list to ensure seamless infinite looping
+  const displayMembers = [...members, ...members, ...members];
+
   return (
     <section id="members" className="py-20 bg-white relative overflow-hidden font-marathi">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,27 +74,27 @@ export default function SlidingMembersSection({ members = [] }) {
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-6">
           <div>
             <span className="text-amber-600 font-bold text-sm tracking-widest uppercase bg-amber-100 px-4 py-1.5 rounded-full inline-block mb-3 border border-amber-200">
-              मंडळ नेतृत्व
+              मंडळ नेतृत्व (Auto-Moving Carousel)
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading text-gray-900">
               मंडळ कार्यकारिणी व सदस्य
             </h2>
             <p className="text-gray-600 text-sm sm:text-base mt-1 font-medium">
-              सार्वजनिक गणेशोत्सवाचे सर्व प्रमुख पदाधिकारी व कार्यकर्ते
+              सार्वजनिक गणेशोत्सवाचे सर्व प्रमुख पदाधिकारी व कार्यकर्ते (आपोआप सरकणारे कार्ड्स)
             </p>
           </div>
 
-          {/* Slider Buttons */}
+          {/* Slider Manual Buttons */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => scroll("left")}
+              onClick={() => scrollManual("left")}
               className="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
               aria-label="Previous Members"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
-              onClick={() => scroll("right")}
+              onClick={() => scrollManual("right")}
               className="p-3 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white transition-all hover:scale-105 active:scale-95 shadow-md shadow-orange-600/20"
               aria-label="Next Members"
             >
@@ -59,21 +103,17 @@ export default function SlidingMembersSection({ members = [] }) {
           </div>
         </div>
 
-        {/* Horizontal Slider Track */}
+        {/* Automatic Horizontal Auto-Scrolling Track */}
         <div
           ref={scrollRef}
-          className="flex space-x-6 overflow-x-auto pb-8 pt-2 no-scrollbar scroll-smooth snap-x snap-mandatory"
+          className="flex space-x-6 overflow-x-auto pb-8 pt-2 no-scrollbar cursor-grab active:cursor-grabbing"
         >
-          {members.map((member, index) => (
-            <motion.div
-              key={member.id || index}
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="min-w-[260px] sm:min-w-[300px] max-w-[320px] snap-start shrink-0"
+          {displayMembers.map((member, index) => (
+            <div
+              key={`${member.id || index}-${index}`}
+              className="min-w-[260px] sm:min-w-[300px] max-w-[320px] shrink-0"
             >
-              <Card className="h-full border border-amber-100 bg-white/90 hover:border-amber-400 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 group rounded-3xl overflow-hidden">
+              <Card className="h-full border border-amber-100 bg-white/90 hover:border-amber-400 hover:shadow-2xl hover:shadow-amber-500/15 transition-all duration-300 group rounded-3xl overflow-hidden">
                 
                 {/* Member Photo Container */}
                 <div className="relative w-full aspect-square bg-gradient-to-br from-amber-100 to-orange-100 overflow-hidden">
@@ -113,7 +153,7 @@ export default function SlidingMembersSection({ members = [] }) {
                   </p>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
 

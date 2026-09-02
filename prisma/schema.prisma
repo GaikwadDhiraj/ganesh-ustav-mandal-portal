@@ -23,7 +23,8 @@ model Mandal {
   contactPerson         String
   contactPhone          String
   contactEmail          String?
-  aboutText             String?
+  shortDescription      String?      // Short description for Hero / Showcase (Max 150 chars)
+  aboutText             String?      // Detailed description for About Section (Max 1000 chars)
   heroImageUrl          String?
   upiId                 String?
   qrCodeUrl             String?

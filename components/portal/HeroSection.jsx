@@ -29,7 +29,7 @@ export default function HeroSection({ mandal }) {
   return (
     <section id="hero" className="relative overflow-hidden bg-gradient-to-b from-orange-600 via-amber-500 to-amber-50 text-white pt-12 pb-20 lg:pt-20 lg:pb-32 font-marathi">
       
-      {/* Background Animated Flower Shower (झेंडूची फुले व गुलाबाच्या पाकळ्यांचा वर्षाव) */}
+      {/* Background Animated Flower Shower */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(20)].map((_, i) => (
           <div
@@ -74,8 +74,9 @@ export default function HeroSection({ mandal }) {
               <span>🌸</span>
             </p>
 
+            {/* Short Description (Max 150 Chars) */}
             <p className="text-base sm:text-lg text-amber-50/90 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
-              {mandal.aboutText || "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे. श्रींच्या चरणी आपली सेवा व प्रार्थना अर्पित करा आणि बाप्पाचे आशीर्वाद प्राप्त करा."}
+              {mandal.shortDescription || mandal.aboutText || "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे. श्रींच्या चरणी आपली सेवा व प्रार्थना अर्पित करा आणि बाप्पाचे आशीर्वाद प्राप्त करा."}
             </p>
 
             {/* Address & City */}
@@ -139,7 +140,7 @@ export default function HeroSection({ mandal }) {
               </div>
             </div>
 
-            {/* Interactive Coconut Breaking Ritual Widget (Previous Animation Version) */}
+            {/* Interactive Coconut Breaking Ritual Widget */}
             <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl p-4 border-2 border-amber-300 text-center shadow-xl text-gray-900 space-y-2">
               <span className="text-xs font-bold text-orange-700 bg-orange-50 px-3 py-1 rounded-full border border-orange-200 inline-block">
                 ✨ बाप्पाच्या चरणी श्रीफळ (नारळ) अर्पण करा

@@ -65,36 +65,77 @@ export async function updatePlatformSettings(adminUpiId, registrationFee) {
 export async function updateMandalAdmin(id, data) {
   try {
     try {
-      const updated = await prisma.mandal.update({
-        where: { id },
-        data: {
-          name: data.name,
-          tagline: data.tagline,
-          establishedYear: data.establishedYear,
-          address: data.address,
-          city: data.city,
-          contactPerson: data.contactPerson,
-          contactPhone: data.contactPhone,
-          contactEmail: data.contactEmail,
-          aboutText: data.aboutText,
-          heroImageUrl: data.heroImageUrl,
-          upiId: data.upiId,
-          qrCodeUrl: data.qrCodeUrl,
-          googleMapUrl: data.googleMapUrl,
-          status: data.status,
-          aboutHighlight1Title: data.aboutHighlight1Title,
-          aboutHighlight1Desc: data.aboutHighlight1Desc,
-          aboutHighlight2Title: data.aboutHighlight2Title,
-          aboutHighlight2Desc: data.aboutHighlight2Desc,
-          aboutHighlight3Title: data.aboutHighlight3Title,
-          aboutHighlight3Desc: data.aboutHighlight3Desc,
-          aboutHighlight4Title: data.aboutHighlight4Title,
-          aboutHighlight4Desc: data.aboutHighlight4Desc,
-        }
+      // Transactional delete & recreate related arrays to support full edit capabilities
+      const updated = await prisma.$transaction(async (tx) => {
+        // Delete existing relations
+        await tx.eventSchedule.deleteMany({ where: { mandalId: id } });
+        await tx.mandalMember.deleteMany({ where: { mandalId: id } });
+        await tx.galleryImage.deleteMany({ where: { mandalId: id } });
+
+        // Update Mandal scalar fields & recreate relations
+        return await tx.mandal.update({
+          where: { id },
+          data: {
+            name: data.name,
+            tagline: data.tagline,
+            establishedYear: data.establishedYear,
+            address: data.address,
+            city: data.city,
+            contactPerson: data.contactPerson,
+            contactPhone: data.contactPhone,
+            contactEmail: data.contactEmail,
+            shortDescription: (data.shortDescription || "").slice(0, 150),
+            aboutText: (data.aboutText || "").slice(0, 1000),
+            heroImageUrl: data.heroImageUrl,
+            upiId: data.upiId,
+            qrCodeUrl: data.qrCodeUrl,
+            googleMapUrl: data.googleMapUrl,
+            registrationFeeTxnId: data.registrationFeeTxnId,
+            registrationFeeAmount: parseFloat(data.registrationFeeAmount) || 501,
+            status: data.status,
+            aboutHighlight1Title: data.aboutHighlight1Title,
+            aboutHighlight1Desc: data.aboutHighlight1Desc,
+            aboutHighlight2Title: data.aboutHighlight2Title,
+            aboutHighlight2Desc: data.aboutHighlight2Desc,
+            aboutHighlight3Title: data.aboutHighlight3Title,
+            aboutHighlight3Desc: data.aboutHighlight3Desc,
+            aboutHighlight4Title: data.aboutHighlight4Title,
+            aboutHighlight4Desc: data.aboutHighlight4Desc,
+            events: {
+              create: (data.events || []).map((e, idx) => ({
+                dayTitle: e.dayTitle || `दिवस ${idx + 1}`,
+                eventTime: e.eventTime || "वेळ",
+                title: e.title || "कार्यक्रम",
+                description: e.description || "",
+                order: idx
+              }))
+            },
+            members: {
+              create: (data.members || []).map((m, idx) => ({
+                name: m.name || "सदस्य",
+                designation: m.designation || "कार्यकर्ते",
+                imageUrl: m.imageUrl || "",
+                order: idx
+              }))
+            },
+            gallery: {
+              create: (data.gallery || []).map((g, idx) => ({
+                imageUrl: g.imageUrl || "",
+                caption: g.caption || "",
+                order: idx
+              }))
+            }
+          },
+          include: {
+            events: true,
+            members: true,
+            gallery: true
+          }
+        });
       });
       return { success: true, mandal: updated };
     } catch (dbErr) {
-      // Memory fallback handled gracefully
+      console.warn("DB update fallback:", dbErr.message);
       return { success: true, mandal: data };
     }
   } catch (err) {

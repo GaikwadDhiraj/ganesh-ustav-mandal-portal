@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle, XCircle, Clock, ExternalLink, Copy, Search, ShieldAlert, Phone, MapPin, Eye, QrCode, Download, Lock, KeyRound, LogOut, Edit, Settings, ChevronLeft, ChevronRight, Save, X, Plus, Trash2 } from "lucide-react";
+import { Sparkles, CheckCircle, XCircle, Clock, ExternalLink, Copy, Search, ShieldAlert, Phone, MapPin, Eye, QrCode, Download, Lock, KeyRound, LogOut, Edit, Settings, ChevronLeft, ChevronRight, Save, X, Plus, Trash2, Users, Calendar, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -241,10 +241,10 @@ export default function AdminDashboardPage() {
               <Badge variant="golden" className="px-3 py-1 text-xs font-bold">सुपर ॲडमिन पॅनेल (अनलॉक)</Badge>
             </div>
             <h1 className="text-3xl font-extrabold font-marathi-heading mt-2">
-              गणेश मंडळ अर्ज तपासणी व मंजुरी कक्ष
+              गणेश मंडळ अर्ज तपासणी व संपूर्ण संपादन कक्ष
             </h1>
             <p className="text-gray-400 text-sm mt-1 font-medium">
-              नवीन नोंदणी अर्जांची पडताळणी करा, अर्ज एडिट करा, पेमेंट सेटिंग्ज बदला व QR Code डाऊनलोड करा.
+              नवीन नोंदणी अर्जांची पडताळणी करा, पूर्ण अर्ज एडिट करा, पेमेंट सेटिंग्ज बदला व QR Code डाऊनलोड करा.
             </p>
           </div>
 
@@ -352,24 +352,24 @@ export default function AdminDashboardPage() {
                         <span>स्थापना: {mandal.establishedYear || "N/A"}</span>
                       </div>
 
-                      {/* Display Registration Fee Txn ID & Portal Link */}
+                      {/* Display Registration Fee Txn ID & Full Edit Button */}
                       <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
                           <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">
                             पोर्टल नोंदणी पेमेंट UTR / Txn ID:
                           </span>
                           <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300 inline-block">
-                            {mandal.registrationFeeTxnId || "पेमेंट प्रक्रिया पूर्ण"}
+                            {mandal.registrationFeeTxnId || "पेमेंट पूर्ण"}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => setEditingMandal(mandal)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors shadow-sm"
+                            onClick={() => setEditingMandal({ ...mandal })}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors shadow-md"
                           >
-                            <Edit className="w-3.5 h-3.5" />
-                            संपूर्ण अर्ज पहा व संपादित करा (Edit)
+                            <Edit className="w-4 h-4" />
+                            संपूर्ण अर्ज पहा व संपादित करा (Full Edit)
                           </button>
                         </div>
                       </div>
@@ -515,15 +515,17 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Admin Edit Mandal Form Modal */}
+      {/* Admin FULL View & Edit Mandal Form Modal */}
       {editingMandal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <Card className="max-w-3xl w-full bg-white rounded-3xl p-6 shadow-2xl border-4 border-amber-400 max-h-[90vh] overflow-y-auto space-y-6">
+          <Card className="max-w-4xl w-full bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-amber-400 max-h-[92vh] overflow-y-auto space-y-6">
+            
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-white z-10">
               <div>
-                <Badge variant="golden" className="text-xs">ॲडमिन संपादन मोड</Badge>
+                <Badge variant="golden" className="text-xs">ॲडमिन संपूर्ण फॉर्म संपादन कक्ष</Badge>
                 <h3 className="text-2xl font-bold font-marathi-heading text-gray-900 mt-1">
-                  {editingMandal.name} - अर्ज माहिती संपादित करा
+                  {editingMandal.name} - भरलेला संपूर्ण अर्ज संपादित करा
                 </h3>
               </div>
               <button onClick={() => setEditingMandal(null)} className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100">
@@ -531,107 +533,208 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveEditMandal} className="space-y-6">
+            <form onSubmit={handleSaveEditMandal} className="space-y-8">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">मंडळाचे नाव</label>
-                  <Input
-                    value={editingMandal.name}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, name: e.target.value })}
-                    required
-                  />
-                </div>
+              {/* 1. Basic Info */}
+              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4">
+                <h4 className="font-bold text-lg font-marathi-heading text-orange-700">१. प्राथमिक माहिती</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">मंडळाचे नाव</label>
+                    <Input
+                      value={editingMandal.name || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, name: e.target.value })}
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">घोषवाक्य (Tagline)</label>
-                  <Input
-                    value={editingMandal.tagline || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, tagline: e.target.value })}
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">घोषवाक्य (Tagline)</label>
+                    <Input
+                      value={editingMandal.tagline || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, tagline: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">स्थापना वर्ष</label>
-                  <Input
-                    value={editingMandal.establishedYear || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, establishedYear: e.target.value })}
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">स्थापना वर्ष</label>
+                    <Input
+                      value={editingMandal.establishedYear || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, establishedYear: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">शहर / गाव</label>
-                  <Input
-                    value={editingMandal.city || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, city: e.target.value })}
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">शहर / गाव</label>
+                    <Input
+                      value={editingMandal.city || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, city: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-gray-800">मंडळाचा पत्ता (Location)</label>
-                  <Input
-                    value={editingMandal.address || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, address: e.target.value })}
-                  />
-                </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-bold text-gray-800">मंडळाचा पत्ता</label>
+                    <Input
+                      value={editingMandal.address || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, address: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">संपर्क व्यक्तीचे नाव</label>
-                  <Input
-                    value={editingMandal.contactPerson || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, contactPerson: e.target.value })}
-                  />
-                </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <ImageUploader
+                      label="मुख्य फोटो / बॅनर इमेज (Hero Banner)"
+                      value={editingMandal.heroImageUrl}
+                      onChange={(val) => setEditingMandal({ ...editingMandal, heroImageUrl: val })}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">मोबाईल नंबर</label>
-                  <Input
-                    value={editingMandal.contactPhone || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, contactPhone: e.target.value })}
-                  />
-                </div>
+                  {/* Short Description (Max 150) */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-bold text-amber-900">संक्षिप्त माहिती (Short Description - Max 150 अक्षरे)</label>
+                    <Textarea
+                      rows={2}
+                      maxLength={150}
+                      value={editingMandal.shortDescription || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, shortDescription: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">मंडळाचा वर्गणी UPI ID</label>
-                  <Input
-                    value={editingMandal.upiId || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, upiId: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-800">गूगल मॅप Link</label>
-                  <Input
-                    value={editingMandal.googleMapUrl || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-1 md:col-span-2">
-                  <ImageUploader
-                    label="मुख्य बॅनर फोटो (Hero Banner Image)"
-                    value={editingMandal.heroImageUrl}
-                    onChange={(val) => setEditingMandal({ ...editingMandal, heroImageUrl: val })}
-                  />
-                </div>
-
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-gray-800">मंडळाविषयी सविस्तर माहिती (About Mandal)</label>
-                  <Textarea
-                    rows={3}
-                    value={editingMandal.aboutText || ""}
-                    onChange={(e) => setEditingMandal({ ...editingMandal, aboutText: e.target.value })}
-                  />
+                  {/* Detailed Description (Max 1000) */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-bold text-amber-900">सविस्तर माहिती (Detailed Description - Max 1000 अक्षरे)</label>
+                    <Textarea
+                      rows={4}
+                      maxLength={1000}
+                      value={editingMandal.aboutText || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, aboutText: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 border-t pt-4">
+              {/* 2. Contact Details */}
+              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4">
+                <h4 className="font-bold text-lg font-marathi-heading text-orange-700">२. संपर्क व पेमेंट UTR माहिती</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">संपर्क व्यक्तीचे नाव</label>
+                    <Input
+                      value={editingMandal.contactPerson || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, contactPerson: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">मोबाईल नंबर</label>
+                    <Input
+                      value={editingMandal.contactPhone || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, contactPhone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-800">पोर्टल फी UTR / Txn ID</label>
+                    <Input
+                      value={editingMandal.registrationFeeTxnId || ""}
+                      onChange={(e) => setEditingMandal({ ...editingMandal, registrationFeeTxnId: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Schedule Events Edit */}
+              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-lg font-marathi-heading text-orange-700">३. उत्सव वेळापत्रक (Events Schedule)</h4>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setEditingMandal({ ...editingMandal, events: [...(editingMandal.events || []), { dayTitle: "", eventTime: "", title: "", description: "" }] })}
+                  >
+                    + नवीन कार्यक्रम जोडा
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {(editingMandal.events || []).map((evt, idx) => (
+                    <div key={idx} className="flex gap-2 items-center bg-white p-3 rounded-xl border border-amber-200">
+                      <Input placeholder="दिवस" value={evt.dayTitle} onChange={(e) => {
+                        const updated = [...editingMandal.events];
+                        updated[idx].dayTitle = e.target.value;
+                        setEditingMandal({ ...editingMandal, events: updated });
+                      }} className="w-1/4" />
+                      <Input placeholder="वेळ" value={evt.eventTime} onChange={(e) => {
+                        const updated = [...editingMandal.events];
+                        updated[idx].eventTime = e.target.value;
+                        setEditingMandal({ ...editingMandal, events: updated });
+                      }} className="w-1/4" />
+                      <Input placeholder="शीर्षक" value={evt.title} onChange={(e) => {
+                        const updated = [...editingMandal.events];
+                        updated[idx].title = e.target.value;
+                        setEditingMandal({ ...editingMandal, events: updated });
+                      }} className="w-1/2" />
+                      <button type="button" onClick={() => {
+                        const updated = editingMandal.events.filter((_, i) => i !== idx);
+                        setEditingMandal({ ...editingMandal, events: updated });
+                      }} className="p-2 text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Members Edit */}
+              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-lg font-marathi-heading text-orange-700">४. कार्यकारिणी सदस्य (Members List)</h4>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setEditingMandal({ ...editingMandal, members: [...(editingMandal.members || []), { name: "", designation: "कार्यकर्ते", imageUrl: "" }] })}
+                  >
+                    + सदस्य जोडा
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {(editingMandal.members || []).map((mem, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded-xl border border-amber-200 space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <Input placeholder="सदस्याचे नाव" value={mem.name} onChange={(e) => {
+                          const updated = [...editingMandal.members];
+                          updated[idx].name = e.target.value;
+                          setEditingMandal({ ...editingMandal, members: updated });
+                        }} className="w-1/2" />
+                        <Input placeholder="पद" value={mem.designation} onChange={(e) => {
+                          const updated = [...editingMandal.members];
+                          updated[idx].designation = e.target.value;
+                          setEditingMandal({ ...editingMandal, members: updated });
+                        }} className="w-1/2" />
+                        <button type="button" onClick={() => {
+                          const updated = editingMandal.members.filter((_, i) => i !== idx);
+                          setEditingMandal({ ...editingMandal, members: updated });
+                        }} className="p-2 text-red-600">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <ImageUploader label="सदस्याचा फोटो" value={mem.imageUrl} onChange={(val) => {
+                        const updated = [...editingMandal.members];
+                        updated[idx].imageUrl = val;
+                        setEditingMandal({ ...editingMandal, members: updated });
+                      }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 border-t pt-4 sticky bottom-0 bg-white py-2">
                 <Button type="button" onClick={() => setEditingMandal(null)} variant="outline">
                   रद्द करा
                 </Button>
-                <Button type="submit" variant="golden" className="gap-2 font-bold">
+                <Button type="submit" variant="golden" className="gap-2 font-bold px-8">
                   <Save className="w-4 h-4" />
-                  बदल जतन करा (Save Changes)
+                  सर्व बदल जतन करा (Save All Changes)
                 </Button>
               </div>
 

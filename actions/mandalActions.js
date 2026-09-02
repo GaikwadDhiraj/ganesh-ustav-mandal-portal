@@ -16,7 +16,11 @@ export async function registerMandal(formData) {
     const contactPerson = formData.contactPerson;
     const contactPhone = formData.contactPhone;
     const contactEmail = formData.contactEmail || "";
-    const aboutText = formData.aboutText || "";
+    
+    // Short & Detailed Descriptions with char limits
+    const shortDescription = (formData.shortDescription || "").slice(0, 150) || "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे.";
+    const aboutText = (formData.aboutText || "").slice(0, 1000) || "आमच्या गणेशोत्सवात आपले सहर्ष स्वागत आहे. श्रींच्या चरणी आपली सेवा व प्रार्थना अर्पित करा आणि बाप्पाचे आशीर्वाद प्राप्त करा.";
+    
     const heroImageUrl = formData.heroImageUrl || "/hero-main-ganesha.jpg";
     const upiId = formData.upiId || "";
     const qrCodeUrl = formData.qrCodeUrl || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${upiId}` : "");
@@ -57,6 +61,7 @@ export async function registerMandal(formData) {
       contactPerson,
       contactPhone,
       contactEmail,
+      shortDescription,
       aboutText,
       heroImageUrl,
       upiId,
@@ -92,6 +97,7 @@ export async function registerMandal(formData) {
           contactPerson: newMandal.contactPerson,
           contactPhone: newMandal.contactPhone,
           contactEmail: newMandal.contactEmail,
+          shortDescription: newMandal.shortDescription,
           aboutText: newMandal.aboutText,
           heroImageUrl: newMandal.heroImageUrl,
           upiId: newMandal.upiId,
