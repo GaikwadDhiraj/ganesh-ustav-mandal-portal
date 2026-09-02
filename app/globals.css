@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+:root {
+  --font-marathi: 'Tiro Devanagari Marathi', 'Noto Sans Devanagari', sans-serif;
+  --font-marathi-title: 'Rozha One', 'Tiro Devanagari Marathi', 'Noto Sans Devanagari', serif;
+  --color-bhagwa: #FF7F00;
+  --color-bhagwa-dark: #D96B00;
+  --color-gold: #D4AF37;
+  --color-crimson: #990000;
+  --color-bg-warm: #FFFDF9;
+}
+
+html, body {
+  font-family: var(--font-marathi);
+  background-color: var(--color-bg-warm);
+  color: #1F2937;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1, "clig" 1;
+  font-variant-ligatures: common-ligatures contextual;
+  letter-spacing: 0px !important;
+  word-spacing: 0px !important;
+}
+
+.font-marathi-heading {
+  font-family: var(--font-marathi-title);
+  font-feature-settings: "liga" 1, "dlig" 1, "kern" 1;
+  letter-spacing: 0px !important;
+  word-spacing: 0px !important;
+}
+
+/* Custom Horizontal Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Glow effects for Ganesh Bappa UI */
+.glow-gold {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+}
+
+.glow-bhagwa {
+  box-shadow: 0 0 30px rgba(255, 127, 0, 0.5);
+}
+
+/* Hide scrollbar for clean horizontal scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animated Flower Rain / Shower Keyframes (Zendu Marigold & Rose Petals) */
+@keyframes flowerFall {
+  0% {
+    transform: translateY(-10%) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(115vh) rotate(360deg) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.falling-flower {
+  position: absolute;
+  top: -40px;
+  pointer-events: none;
+  animation: flowerFall linear infinite;
+}
+
+/* Coconut Break Animations */
+@keyframes coconutShake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-15deg) scale(1.08); }
+  40% { transform: rotate(15deg) scale(1.08); }
+  60% { transform: rotate(-10deg) scale(1.05); }
+  80% { transform: rotate(10deg) scale(1.05); }
+}
+
+.coconut-shake {
+  animation: coconutShake 0.5s ease-in-out;
+}

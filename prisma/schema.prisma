@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MandalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Mandal {
+  id              String       @id @default(uuid())
+  slug            String       @unique
+  name            String
+  tagline         String?
+  establishedYear String?
+  address         String
+  city            String
+  contactPerson   String
+  contactPhone    String
+  contactEmail    String?
+  aboutText       String?
+  heroImageUrl    String?
+  upiId           String?
+  qrCodeUrl       String?
+  googleMapUrl    String?
+  status          MandalStatus @default(PENDING)
+  adminNote       String?
+
+  // Customizable 4 About Section Highlights
+  aboutHighlight1Title String?  @default("भव्य व सुरेख देखावे")
+  aboutHighlight1Desc  String?  @default("दरवर्षी आकर्षक व पर्यावरणपूरक देखावे सादर केले जातात.")
+
+  aboutHighlight2Title String?  @default("सामाजिक उपक्रम")
+  aboutHighlight2Desc  String?  @default("रक्तदान शिबिर, वृक्षारोपण व मोफत रुग्ण सेवा.")
+
+  aboutHighlight3Title String?  @default("सांस्कृतिक स्पर्धा")
+  aboutHighlight3Desc  String?  @default("महिला व लहान मुलांसाठी मनोरंजक स्पर्धा.")
+
+  aboutHighlight4Title String?  @default("एकजूट व कार्यकर्ते")
+  aboutHighlight4Desc  String?  @default("तरुणांची भक्कम साथ व सर्वधर्मीय बंधुभाव.")
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  events          EventSchedule[]
+  members         MandalMember[]
+  gallery         GalleryImage[]
+}
+
+model EventSchedule {
+  id          String   @id @default(uuid())
+  mandalId    String
+  mandal      Mandal   @relation(fields: [mandalId], references: [id], onDelete: Cascade)
+  dayTitle    String
+  eventTime   String
+  title       String
+  description String?
+  order       Int      @default(0)
+}
+
+model MandalMember {
+  id          String   @id @default(uuid())
+  mandalId    String
+  mandal      Mandal   @relation(fields: [mandalId], references: [id], onDelete: Cascade)
+  name        String
+  designation String
+  imageUrl    String?
+  order       Int      @default(0)
+}
+
+model GalleryImage {
+  id          String   @id @default(uuid())
+  mandalId    String
+  mandal      Mandal   @relation(fields: [mandalId], references: [id], onDelete: Cascade)
+  imageUrl    String
+  caption     String?
+  order       Int      @default(0)
+}

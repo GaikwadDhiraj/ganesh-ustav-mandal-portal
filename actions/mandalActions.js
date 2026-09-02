@@ -1,0 +1,205 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/utils";
+import { DEMO_MANDALS } from "@/lib/defaultData";
+
+let inMemoryMandals = [...DEMO_MANDALS];
+
+export async function registerMandal(formData) {
+  try {
+    const name = formData.name;
+    const tagline = formData.tagline || "गणपती बाप्पा मोरया! मंगलमूर्ती मोरया!";
+    const establishedYear = formData.establishedYear || "";
+    const address = formData.address;
+    const city = formData.city || "पुणे";
+    const contactPerson = formData.contactPerson;
+    const contactPhone = formData.contactPhone;
+    const contactEmail = formData.contactEmail || "";
+    const aboutText = formData.aboutText || "";
+    const heroImageUrl = formData.heroImageUrl || "/bal-ganesha-modak.jpg";
+    const upiId = formData.upiId || "";
+    const qrCodeUrl = formData.qrCodeUrl || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${upiId}` : "");
+    const googleMapUrl = formData.googleMapUrl || "";
+
+    // Customizable 4 About Section Highlights
+    const aboutHighlight1Title = formData.aboutHighlight1Title || "भव्य व सुरेख देखावे";
+    const aboutHighlight1Desc  = formData.aboutHighlight1Desc  || "दरवर्षी आकर्षक व पर्यावरणपूरक देखावे सादर केले जातात.";
+    
+    const aboutHighlight2Title = formData.aboutHighlight2Title || "सामाजिक उपक्रम";
+    const aboutHighlight2Desc  = formData.aboutHighlight2Desc  || "रक्तदान शिबिर, वृक्षारोपण व मोफत रुग्ण सेवा.";
+
+    const aboutHighlight3Title = formData.aboutHighlight3Title || "सांस्कृतिक स्पर्धा";
+    const aboutHighlight3Desc  = formData.aboutHighlight3Desc  || "महिला व लहान मुलांसाठी मनोरंजक स्पर्धा.";
+
+    const aboutHighlight4Title = formData.aboutHighlight4Title || "एकजूट व कार्यकर्ते";
+    const aboutHighlight4Desc  = formData.aboutHighlight4Desc  || "तरुणांची भक्कम साथ व सर्वधर्मीय बंधुभाव.";
+
+    const rawSlug = slugify(name);
+    let slug = rawSlug;
+
+    // Parse sub-arrays
+    const events = formData.events || [];
+    const members = formData.members || [];
+    const gallery = formData.gallery || [];
+
+    const newMandal = {
+      id: "mandal-" + Date.now(),
+      slug,
+      name,
+      tagline,
+      establishedYear,
+      address,
+      city,
+      contactPerson,
+      contactPhone,
+      contactEmail,
+      aboutText,
+      heroImageUrl,
+      upiId,
+      qrCodeUrl,
+      googleMapUrl,
+      aboutHighlight1Title,
+      aboutHighlight1Desc,
+      aboutHighlight2Title,
+      aboutHighlight2Desc,
+      aboutHighlight3Title,
+      aboutHighlight3Desc,
+      aboutHighlight4Title,
+      aboutHighlight4Desc,
+      status: "PENDING",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      events: events.map((e, idx) => ({ ...e, id: `evt-${Date.now()}-${idx}`, order: idx })),
+      members: members.map((m, idx) => ({ ...m, id: `mem-${Date.now()}-${idx}`, order: idx })),
+      gallery: gallery.map((g, idx) => ({ ...g, id: `gal-${Date.now()}-${idx}`, order: idx }))
+    };
+
+    try {
+      const created = await prisma.mandal.create({
+        data: {
+          slug: newMandal.slug,
+          name: newMandal.name,
+          tagline: newMandal.tagline,
+          establishedYear: newMandal.establishedYear,
+          address: newMandal.address,
+          city: newMandal.city,
+          contactPerson: newMandal.contactPerson,
+          contactPhone: newMandal.contactPhone,
+          contactEmail: newMandal.contactEmail,
+          aboutText: newMandal.aboutText,
+          heroImageUrl: newMandal.heroImageUrl,
+          upiId: newMandal.upiId,
+          qrCodeUrl: newMandal.qrCodeUrl,
+          googleMapUrl: newMandal.googleMapUrl,
+          aboutHighlight1Title: newMandal.aboutHighlight1Title,
+          aboutHighlight1Desc: newMandal.aboutHighlight1Desc,
+          aboutHighlight2Title: newMandal.aboutHighlight2Title,
+          aboutHighlight2Desc: newMandal.aboutHighlight2Desc,
+          aboutHighlight3Title: newMandal.aboutHighlight3Title,
+          aboutHighlight3Desc: newMandal.aboutHighlight3Desc,
+          aboutHighlight4Title: newMandal.aboutHighlight4Title,
+          aboutHighlight4Desc: newMandal.aboutHighlight4Desc,
+          status: "PENDING",
+          events: {
+            create: events.map((e, idx) => ({
+              dayTitle: e.dayTitle || `दिवस ${idx + 1}`,
+              eventTime: e.eventTime || "वेळ ठरली नाही",
+              title: e.title || "कार्यक्रम",
+              description: e.description || "",
+              order: idx
+            }))
+          },
+          members: {
+            create: members.map((m, idx) => ({
+              name: m.name || "सदस्य",
+              designation: m.designation || "कार्यकर्ते",
+              imageUrl: m.imageUrl || "",
+              order: idx
+            }))
+          },
+          gallery: {
+            create: gallery.map((g, idx) => ({
+              imageUrl: g.imageUrl || "",
+              caption: g.caption || "",
+              order: idx
+            }))
+          }
+        },
+        include: {
+          events: true,
+          members: true,
+          gallery: true
+        }
+      });
+      return { success: true, mandal: created, slug: created.slug };
+    } catch (dbErr) {
+      console.warn("DB offline/fallback to in-memory store:", dbErr.message);
+      inMemoryMandals.unshift(newMandal);
+      return { success: true, mandal: newMandal, slug: newMandal.slug };
+    }
+  } catch (err) {
+    console.error("registerMandal error:", err);
+    return { success: false, error: err.message || "नोंदणी करताना त्रुटी आली." };
+  }
+}
+
+export async function getMandalBySlug(slug) {
+  try {
+    const dbMandal = await prisma.mandal.findUnique({
+      where: { slug },
+      include: {
+        events: { orderBy: { order: "asc" } },
+        members: { orderBy: { order: "asc" } },
+        gallery: { orderBy: { order: "asc" } }
+      }
+    });
+
+    if (dbMandal) return dbMandal;
+  } catch (dbErr) {
+    // Fallback to memory
+  }
+
+  const foundInMemory = inMemoryMandals.find(m => m.slug === slug || m.id === slug);
+  if (foundInMemory) return foundInMemory;
+
+  return DEMO_MANDALS[0];
+}
+
+export async function getAllMandals() {
+  try {
+    const mandals = await prisma.mandal.findMany({
+      include: {
+        events: true,
+        members: true,
+        gallery: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    if (mandals && mandals.length > 0) return mandals;
+  } catch (err) {
+    // Fallback
+  }
+  return inMemoryMandals;
+}
+
+export async function approveMandalStatus(id, newStatus = "APPROVED") {
+  try {
+    try {
+      const updated = await prisma.mandal.update({
+        where: { id },
+        data: { status: newStatus }
+      });
+      return { success: true, mandal: updated };
+    } catch (dbErr) {
+      const target = inMemoryMandals.find(m => m.id === id);
+      if (target) {
+        target.status = newStatus;
+        return { success: true, mandal: target };
+      }
+    }
+    return { success: false, error: "मंडळ सापडले नाही." };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
