@@ -13,23 +13,25 @@ enum MandalStatus {
 }
 
 model Mandal {
-  id              String       @id @default(uuid())
-  slug            String       @unique
-  name            String
-  tagline         String?
-  establishedYear String?
-  address         String
-  city            String
-  contactPerson   String
-  contactPhone    String
-  contactEmail    String?
-  aboutText       String?
-  heroImageUrl    String?
-  upiId           String?
-  qrCodeUrl       String?
-  googleMapUrl    String?
-  status          MandalStatus @default(PENDING)
-  adminNote       String?
+  id                    String       @id @default(uuid())
+  slug                  String       @unique
+  name                  String
+  tagline               String?
+  establishedYear       String?
+  address               String
+  city                  String
+  contactPerson         String
+  contactPhone          String
+  contactEmail          String?
+  aboutText             String?
+  heroImageUrl          String?
+  upiId                 String?
+  qrCodeUrl             String?
+  googleMapUrl          String?
+  registrationFeeTxnId  String?
+  registrationFeeAmount Float?       @default(501)
+  status                MandalStatus @default(PENDING)
+  adminNote             String?
 
   // Customizable 4 About Section Highlights
   aboutHighlight1Title String?  @default("भव्य व सुरेख देखावे")
@@ -80,4 +82,11 @@ model GalleryImage {
   imageUrl    String
   caption     String?
   order       Int      @default(0)
+}
+
+model PlatformSetting {
+  id              String   @id @default("default-settings")
+  adminUpiId      String   @default("8600570542@paytm")
+  registrationFee Float    @default(501)
+  updatedAt       DateTime @updatedAt
 }

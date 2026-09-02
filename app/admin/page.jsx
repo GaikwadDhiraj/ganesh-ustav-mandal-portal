@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, CheckCircle, XCircle, Clock, ExternalLink, Copy, Search, ShieldAlert, Phone, MapPin, Eye, QrCode, Download, Lock, KeyRound, LogOut } from "lucide-react";
+import { Sparkles, CheckCircle, XCircle, Clock, ExternalLink, Copy, Search, ShieldAlert, Phone, MapPin, Eye, QrCode, Download, Lock, KeyRound, LogOut, Edit, Settings, ChevronLeft, ChevronRight, Save, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { getAdminDashboardStats, updateMandalStatusAdmin } from "@/actions/adminActions";
+import { Textarea } from "@/components/ui/textarea";
+import ImageUploader from "@/components/ui/image-uploader";
+import { getAdminDashboardStats, updateMandalStatusAdmin, updatePlatformSettings, updateMandalAdmin } from "@/actions/adminActions";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -17,12 +19,20 @@ export default function AdminDashboardPage() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
 
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, mandals: [] });
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, mandals: [], settings: { adminUpiId: "8600570542@paytm", registrationFee: 501 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showQrModal, setShowQrModal] = useState(null);
 
-  // Check session storage for existing auth
+  // Modals state
+  const [editingMandal, setEditingMandal] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({ adminUpiId: "8600570542@paytm", registrationFee: 501 });
+
+  // Pagination State (10 items per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("admin_authenticated");
     if (savedAuth === "true") {
@@ -57,6 +67,9 @@ export default function AdminDashboardPage() {
     try {
       const data = await getAdminDashboardStats();
       setStats(data);
+      if (data.settings) {
+        setSettingsForm(data.settings);
+      }
     } catch (err) {
       toast.error("माहिती लोड करताना त्रुटी आली.");
     } finally {
@@ -72,6 +85,39 @@ export default function AdminDashboardPage() {
         fetchStats();
       } else {
         toast.error(res.error || "अपडेट अपयशी.");
+      }
+    } catch (err) {
+      toast.error("त्रुटी आली.");
+    }
+  };
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await updatePlatformSettings(settingsForm.adminUpiId, settingsForm.registrationFee);
+      if (res.success) {
+        toast.success("पेमेंट सेटिंग्ज यशस्वीरीत्या जतन झाल्या!");
+        setShowSettingsModal(false);
+        fetchStats();
+      } else {
+        toast.error(res.error || "सेटिंग्ज जतन होऊ शकल्या नाहीत.");
+      }
+    } catch (err) {
+      toast.error("त्रुटी आली.");
+    }
+  };
+
+  const handleSaveEditMandal = async (e) => {
+    e.preventDefault();
+    if (!editingMandal) return;
+    try {
+      const res = await updateMandalAdmin(editingMandal.id, editingMandal);
+      if (res.success) {
+        toast.success("मंडळ अर्ज माहिती यशस्वीरीत्या अद्ययावत (Updated) झाली!");
+        setEditingMandal(null);
+        fetchStats();
+      } else {
+        toast.error(res.error || "माहिती अद्ययावत झाली नाही.");
       }
     } catch (err) {
       toast.error("त्रुटी आली.");
@@ -109,6 +155,12 @@ export default function AdminDashboardPage() {
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     m.city.toLowerCase().includes(search.toLowerCase()) ||
     m.contactPerson.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredMandals.length / itemsPerPage) || 1;
+  const paginatedMandals = filteredMandals.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   // If Not Authenticated: Display Password Security Gate Screen
@@ -192,11 +244,15 @@ export default function AdminDashboardPage() {
               गणेश मंडळ अर्ज तपासणी व मंजुरी कक्ष
             </h1>
             <p className="text-gray-400 text-sm mt-1 font-medium">
-              नवीन नोंदणी अर्जांची पडताळणी करा, वेब पोर्टल मंजूर करा आणि QR Code डाऊनलोड करा.
+              नवीन नोंदणी अर्जांची पडताळणी करा, अर्ज एडिट करा, पेमेंट सेटिंग्ज बदला व QR Code डाऊनलोड करा.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => setShowSettingsModal(true)} variant="outline" size="sm" className="gap-1.5 font-bold text-white border-amber-500 hover:bg-amber-950">
+              <Settings className="w-4 h-4 text-amber-400" />
+              पेमेंट सेटिंग्ज (UPI & Fee)
+            </Button>
             <Link href="/register">
               <Button variant="golden" size="sm" className="gap-1.5 font-bold">
                 + नवीन मंडळ नोंदणी
@@ -204,7 +260,7 @@ export default function AdminDashboardPage() {
             </Link>
             <Button onClick={handleAdminLogout} variant="destructive" size="sm" className="gap-1.5 font-bold">
               <LogOut className="w-4 h-4" />
-              लॉक करा (Logout)
+              लॉक करा
             </Button>
           </div>
         </div>
@@ -243,12 +299,15 @@ export default function AdminDashboardPage() {
             <Input
               placeholder="मंडळाचे नाव किंवा शहर शोधा..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pl-9"
             />
           </div>
           <p className="text-xs text-gray-500 font-bold">
-            एकूण {filteredMandals.length} अर्ज दर्शवित आहे
+            एकूण {filteredMandals.length} अर्जांपैकी {paginatedMandals.length} दर्शवत आहे (10-10 पझिनेशन)
           </p>
         </div>
 
@@ -258,12 +317,12 @@ export default function AdminDashboardPage() {
             <div className="text-center py-16 text-gray-500 font-bold">
               अर्ज लोड होत आहेत...
             </div>
-          ) : filteredMandals.length === 0 ? (
+          ) : paginatedMandals.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-3xl border border-amber-200">
               <p className="text-gray-500 font-bold font-marathi-heading text-lg">कोणतेही मंडळ अर्ज सापडले नाहीत.</p>
             </div>
           ) : (
-            filteredMandals.map((mandal) => {
+            paginatedMandals.map((mandal) => {
               const portalUrl = typeof window !== "undefined" ? `${window.location.origin}/mandal/${mandal.slug}` : `/mandal/${mandal.slug}`;
 
               return (
@@ -293,23 +352,26 @@ export default function AdminDashboardPage() {
                         <span>स्थापना: {mandal.establishedYear || "N/A"}</span>
                       </div>
 
-                      {/* Display Portal Link & QR Preview */}
-                      <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {/* Display Registration Fee Txn ID & Portal Link */}
+                      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
-                          <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">वेब पोर्टल लिंक:</span>
-                          <code className="text-xs font-mono font-bold text-orange-700 block break-all">
-                            /mandal/{mandal.slug}
-                          </code>
+                          <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">
+                            पोर्टल नोंदणी पेमेंट UTR / Txn ID:
+                          </span>
+                          <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300 inline-block">
+                            {mandal.registrationFeeTxnId || "पेमेंट प्रक्रिया पूर्ण"}
+                          </span>
                         </div>
 
-                        {/* Mini QR Preview Button */}
-                        <button
-                          onClick={() => setShowQrModal(mandal)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-xs font-bold text-amber-950 hover:bg-amber-100 transition-colors shrink-0"
-                        >
-                          <QrCode className="w-4 h-4 text-orange-600" />
-                          QR Code पहा व डाऊनलोड करा
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingMandal(mandal)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors shadow-sm"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            संपूर्ण अर्ज पहा व संपादित करा (Edit)
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -374,7 +436,209 @@ export default function AdminDashboardPage() {
           )}
         </div>
 
+        {/* 10-10 Item Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 pt-6">
+            <Button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              variant="outline"
+              size="sm"
+              className="gap-1 font-bold"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              मागील (Previous)
+            </Button>
+
+            <span className="text-xs font-bold text-gray-700 px-3">
+              पान {currentPage} पैकी {totalPages}
+            </span>
+
+            <Button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              variant="outline"
+              size="sm"
+              className="gap-1 font-bold"
+            >
+              पुढील (Next)
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
       </div>
+
+      {/* Admin Payment Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="max-w-md w-full bg-white rounded-3xl p-6 shadow-2xl border-4 border-amber-400 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
+                ॲडमिन पेमेंट सेटिंग्ज (UPI & Fee Settings)
+              </h3>
+              <button onClick={() => setShowSettingsModal(false)} className="p-1 text-gray-400 hover:text-red-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSettings} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-800">ॲडमिन UPI ID (पेमेंट स्वीकारण्यासाठी)</label>
+                <Input
+                  value={settingsForm.adminUpiId}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, adminUpiId: e.target.value })}
+                  placeholder="उदा. 8600570542@paytm"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-800">वेब पोर्टल नोंदणी फी रक्कम (₹ Registration Amount)</label>
+                <Input
+                  type="number"
+                  value={settingsForm.registrationFee}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, registrationFee: e.target.value })}
+                  placeholder="उदा. 501"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-3">
+                <Button type="submit" variant="golden" className="w-full justify-center gap-2 font-bold">
+                  <Save className="w-4 h-4" />
+                  सेटिंग्ज जतन करा (Save Settings)
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Admin Edit Mandal Form Modal */}
+      {editingMandal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <Card className="max-w-3xl w-full bg-white rounded-3xl p-6 shadow-2xl border-4 border-amber-400 max-h-[90vh] overflow-y-auto space-y-6">
+            <div className="flex items-center justify-between border-b pb-4 sticky top-0 bg-white z-10">
+              <div>
+                <Badge variant="golden" className="text-xs">ॲडमिन संपादन मोड</Badge>
+                <h3 className="text-2xl font-bold font-marathi-heading text-gray-900 mt-1">
+                  {editingMandal.name} - अर्ज माहिती संपादित करा
+                </h3>
+              </div>
+              <button onClick={() => setEditingMandal(null)} className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditMandal} className="space-y-6">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">मंडळाचे नाव</label>
+                  <Input
+                    value={editingMandal.name}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">घोषवाक्य (Tagline)</label>
+                  <Input
+                    value={editingMandal.tagline || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, tagline: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">स्थापना वर्ष</label>
+                  <Input
+                    value={editingMandal.establishedYear || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, establishedYear: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">शहर / गाव</label>
+                  <Input
+                    value={editingMandal.city || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, city: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-bold text-gray-800">मंडळाचा पत्ता (Location)</label>
+                  <Input
+                    value={editingMandal.address || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, address: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">संपर्क व्यक्तीचे नाव</label>
+                  <Input
+                    value={editingMandal.contactPerson || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, contactPerson: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">मोबाईल नंबर</label>
+                  <Input
+                    value={editingMandal.contactPhone || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, contactPhone: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">मंडळाचा वर्गणी UPI ID</label>
+                  <Input
+                    value={editingMandal.upiId || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, upiId: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-800">गूगल मॅप Link</label>
+                  <Input
+                    value={editingMandal.googleMapUrl || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <ImageUploader
+                    label="मुख्य बॅनर फोटो (Hero Banner Image)"
+                    value={editingMandal.heroImageUrl}
+                    onChange={(val) => setEditingMandal({ ...editingMandal, heroImageUrl: val })}
+                  />
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-bold text-gray-800">मंडळाविषयी सविस्तर माहिती (About Mandal)</label>
+                  <Textarea
+                    rows={3}
+                    value={editingMandal.aboutText || ""}
+                    onChange={(e) => setEditingMandal({ ...editingMandal, aboutText: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 border-t pt-4">
+                <Button type="button" onClick={() => setEditingMandal(null)} variant="outline">
+                  रद्द करा
+                </Button>
+                <Button type="submit" variant="golden" className="gap-2 font-bold">
+                  <Save className="w-4 h-4" />
+                  बदल जतन करा (Save Changes)
+                </Button>
+              </div>
+
+            </form>
+          </Card>
+        </div>
+      )}
 
       {/* QR Code Preview Modal */}
       {showQrModal && (

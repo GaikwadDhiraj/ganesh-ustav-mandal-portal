@@ -17,10 +17,13 @@ export async function registerMandal(formData) {
     const contactPhone = formData.contactPhone;
     const contactEmail = formData.contactEmail || "";
     const aboutText = formData.aboutText || "";
-    const heroImageUrl = formData.heroImageUrl || "/bal-ganesha-modak.jpg";
+    const heroImageUrl = formData.heroImageUrl || "/hero-main-ganesha.jpg";
     const upiId = formData.upiId || "";
     const qrCodeUrl = formData.qrCodeUrl || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${upiId}` : "");
     const googleMapUrl = formData.googleMapUrl || "";
+
+    const registrationFeeTxnId = formData.registrationFeeTxnId || "";
+    const registrationFeeAmount = parseFloat(formData.registrationFeeAmount) || 501;
 
     // Customizable 4 About Section Highlights
     const aboutHighlight1Title = formData.aboutHighlight1Title || "भव्य व सुरेख देखावे";
@@ -59,6 +62,8 @@ export async function registerMandal(formData) {
       upiId,
       qrCodeUrl,
       googleMapUrl,
+      registrationFeeTxnId,
+      registrationFeeAmount,
       aboutHighlight1Title,
       aboutHighlight1Desc,
       aboutHighlight2Title,
@@ -92,6 +97,8 @@ export async function registerMandal(formData) {
           upiId: newMandal.upiId,
           qrCodeUrl: newMandal.qrCodeUrl,
           googleMapUrl: newMandal.googleMapUrl,
+          registrationFeeTxnId: newMandal.registrationFeeTxnId,
+          registrationFeeAmount: newMandal.registrationFeeAmount,
           aboutHighlight1Title: newMandal.aboutHighlight1Title,
           aboutHighlight1Desc: newMandal.aboutHighlight1Desc,
           aboutHighlight2Title: newMandal.aboutHighlight2Title,

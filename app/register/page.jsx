@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload } from "lucide-react";
+import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import ImageUploader from "@/components/ui/image-uploader";
 import { registerMandal } from "@/actions/mandalActions";
+import { getPlatformSettings } from "@/actions/adminActions";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -16,6 +17,26 @@ export default function RegisterMandalPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [submittedSlug, setSubmittedSlug] = useState(null);
+
+  // Platform Admin Payment Settings
+  const [platformSettings, setPlatformSettings] = useState({
+    adminUpiId: "8600570542@paytm",
+    registrationFee: 501
+  });
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const settings = await getPlatformSettings();
+        if (settings) {
+          setPlatformSettings(settings);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadSettings();
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -28,10 +49,13 @@ export default function RegisterMandalPage() {
     contactPhone: "",
     contactEmail: "",
     aboutText: "",
-    heroImageUrl: "/bal-ganesha-modak.jpg",
+    heroImageUrl: "/hero-main-ganesha.jpg",
     upiId: "",
     qrCodeUrl: "",
     googleMapUrl: "",
+
+    // Payment Txn Reference ID
+    registrationFeeTxnId: "",
 
     // 4 Editable About Section Highlights
     aboutHighlight1Title: "भव्य व सुरेख देखावे",
@@ -116,6 +140,7 @@ export default function RegisterMandalPage() {
     try {
       const payload = {
         ...formData,
+        registrationFeeAmount: platformSettings.registrationFee,
         events,
         members,
         gallery,
@@ -146,8 +171,8 @@ export default function RegisterMandalPage() {
           <h2 className="text-3xl font-extrabold font-marathi-heading text-gray-900">
             मंडळाची नोंदणी यशस्वी!
           </h2>
-          <p className="text-gray-600 text-base">
-            तुमचा अर्ज ॲडमिन मंजुरीसाठी पाठवला गेला आहे. ॲडमिन मंजुरीनंतर तुमचा वेब पोर्टल खालील लिंकवर सक्रिय होईल.
+          <p className="text-gray-600 text-base font-medium">
+            तुमचा अर्ज ॲडमिन मंजुरीसाठी पाठवला गेला आहे. ॲडमिन पडताळणीनंतर तुमचा वेब पोर्टल खालील लिंकवर सक्रिय होईल.
           </p>
 
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left space-y-2">
@@ -159,13 +184,13 @@ export default function RegisterMandalPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <Link href={`/mandal/${submittedSlug}`} className="w-full">
-              <Button variant="golden" className="w-full justify-center gap-2">
+              <Button variant="golden" className="w-full justify-center gap-2 font-bold">
                 वेब पोर्टल पूर्वदृश्य (Preview) पहा
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
             <Link href="/admin" className="w-full">
-              <Button variant="outline" className="w-full justify-center">
+              <Button variant="outline" className="w-full justify-center font-bold">
                 ॲडमिन पॅनेलमध्ये जा (Approve करा)
               </Button>
             </Link>
@@ -174,6 +199,10 @@ export default function RegisterMandalPage() {
       </main>
     );
   }
+
+  const paymentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    `upi://pay?pa=${platformSettings.adminUpiId}&pn=MandalPortalRegistration&am=${platformSettings.registrationFee}&cu=INR`
+  )}`;
 
   return (
     <main className="min-h-screen bg-[#FFFDF9] text-gray-900 pb-20 font-marathi">
@@ -189,8 +218,8 @@ export default function RegisterMandalPage() {
             <h1 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading">
               गणेश मंडळ वेब पोर्टल नोंदणी अर्ज
             </h1>
-            <p className="text-amber-100 text-sm sm:text-base mt-1">
-              तुमच्या गणेशोत्सवासाठी मोफत अधिकृत वेब पोर्टल तयार करा.
+            <p className="text-amber-100 text-sm sm:text-base mt-1 font-medium">
+              तुमच्या गणेशोत्सवासाठी अधिकृत वेब पोर्टल तयार करा.
             </p>
           </div>
           <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-3xl">
@@ -271,7 +300,7 @@ export default function RegisterMandalPage() {
                   label="मुख्य फोटो / बॅनर इमेज (Hero Banner)"
                   value={formData.heroImageUrl}
                   onChange={(val) => setFormData((prev) => ({ ...prev, heroImageUrl: val }))}
-                  placeholder="/bal-ganesha-modak.jpg किंवा इमेज फाईल निवडा"
+                  placeholder="/hero-main-ganesha.jpg किंवा इमेज फाईल निवडा"
                 />
               </div>
 
@@ -467,7 +496,7 @@ export default function RegisterMandalPage() {
             </CardContent>
           </Card>
 
-          {/* Section 5: Members with Image Upload */}
+          {/* Section 5: Members */}
           <Card className="rounded-3xl border-amber-200">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -518,7 +547,7 @@ export default function RegisterMandalPage() {
             </CardContent>
           </Card>
 
-          {/* Section 6: Photo Gallery Builder (Max 10 Photos) */}
+          {/* Section 6: Photo Gallery */}
           <Card className="rounded-3xl border-amber-200">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -574,12 +603,12 @@ export default function RegisterMandalPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-600">
                 <QrCode className="w-5 h-5 text-amber-500" />
-                ७. वर्गणी UPI ID, QR Code व गूगल मॅप (Donation & Location)
+                ७. मंडळाची स्वतःची वर्गणी UPI ID, QR Code व गूगल मॅप (Mandal Vargani & Location)
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-800">वर्गणी UPI ID</label>
+                <label className="text-sm font-bold text-gray-800">मंडळाचा वर्गणी UPI ID</label>
                 <Input
                   name="upiId"
                   placeholder="उदा. mandal@upi किंवा 9876543210@paytm"
@@ -590,7 +619,7 @@ export default function RegisterMandalPage() {
 
               <div className="space-y-2 md:col-span-2">
                 <ImageUploader
-                  label="वर्गणी QR Code फोटो (QR Code Image)"
+                  label="मंडळाचा वर्गणी QR Code फोटो (QR Code Image)"
                   value={formData.qrCodeUrl}
                   onChange={(val) => setFormData((prev) => ({ ...prev, qrCodeUrl: val }))}
                   placeholder="QR Code फोटो फाईल निवडा किंवा URL टाका (Auto QR साठी मोकळे सोडा)"
@@ -606,6 +635,70 @@ export default function RegisterMandalPage() {
                   onChange={handleInputChange}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 8: Platform Portal Registration Payment Step */}
+          <Card className="rounded-3xl border-2 border-orange-400 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-amber-50 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-700 font-extrabold text-xl">
+                <CreditCard className="w-6 h-6 text-amber-600" />
+                ८. पोर्टल नोंदणी फी भरणा (Portal Registration Payment)
+              </CardTitle>
+              <CardDescription className="text-gray-700 font-medium">
+                वेब पोर्टल नोंदणी पूर्ण करण्यासाठी खालील QR कोड स्कॅन करून निर्धारित फी भरा.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              
+              {/* Payment Details */}
+              <div className="md:col-span-7 space-y-4">
+                <div className="p-4 rounded-2xl bg-white border border-amber-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-700">पोर्टल नोंदणी फी (Registration Amount):</span>
+                    <span className="text-2xl font-extrabold text-orange-600 font-marathi-heading">
+                      ₹{platformSettings.registrationFee}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600 border-t border-gray-100 pt-2">
+                    <span className="font-medium">अधिकृत ॲडमिन UPI ID:</span>
+                    <span className="font-mono font-bold text-amber-900">{platformSettings.adminUpiId}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-900 block">
+                    पेमेंट केल्यानंतर मिळालेला Transaction ID / UTR / Reference No. प्रविष्ट करा *
+                  </label>
+                  <Input
+                    name="registrationFeeTxnId"
+                    placeholder="उदा. UTR 424109852109 किंवा Paytm/GPay Ref No"
+                    value={formData.registrationFeeTxnId}
+                    onChange={handleInputChange}
+                    className="font-mono font-bold border-amber-400"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 font-medium">
+                    पेमेंट पूर्ण झाल्यानंतर UPI अ‍ॅपमध्ये दिसणारा 12 अंकी UTR / Txn ID येथे टाका.
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment QR Code */}
+              <div className="md:col-span-5 flex flex-col items-center text-center">
+                <div className="w-52 h-52 p-2.5 rounded-2xl bg-white border-2 border-amber-400 shadow-lg">
+                  <img
+                    src={paymentQrUrl}
+                    alt="Registration Payment QR Code"
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                </div>
+                <span className="text-xs font-bold text-amber-900 mt-2">
+                  स्कॅन करा व ₹{platformSettings.registrationFee} भरा
+                </span>
+                <span className="text-[11px] text-gray-500 font-semibold">GPay • PhonePe • Paytm • BHIM</span>
+              </div>
+
             </CardContent>
           </Card>
 
