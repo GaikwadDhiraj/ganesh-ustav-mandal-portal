@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/utils";
 import { getAllMandals, approveMandalStatus } from "./mandalActions";
 
 let inMemorySettings = {
@@ -28,8 +29,20 @@ export async function getAdminDashboardStats() {
   };
 }
 
-export async function updateMandalStatusAdmin(id, status) {
-  return await approveMandalStatus(id, status);
+export async function updateMandalStatusAdmin(id, status, customSlug = null) {
+  try {
+    const updateData = { status };
+    if (customSlug) {
+      updateData.slug = slugify(customSlug);
+    }
+    const updated = await prisma.mandal.update({
+      where: { id },
+      data: updateData
+    });
+    return { success: true, mandal: updated };
+  } catch (err) {
+    return await approveMandalStatus(id, status);
+  }
 }
 
 export async function getPlatformSettings() {
@@ -64,6 +77,8 @@ export async function updatePlatformSettings(adminUpiId, registrationFee) {
 
 export async function updateMandalAdmin(id, data) {
   try {
+    const targetSlug = slugify(data.slug || data.name);
+    
     try {
       // Transactional delete & recreate related arrays to support full edit capabilities
       const updated = await prisma.$transaction(async (tx) => {
@@ -76,6 +91,7 @@ export async function updateMandalAdmin(id, data) {
         return await tx.mandal.update({
           where: { id },
           data: {
+            slug: targetSlug,
             name: data.name,
             tagline: data.tagline,
             establishedYear: data.establishedYear,

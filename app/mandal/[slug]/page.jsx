@@ -35,7 +35,7 @@ export default async function MandalPortalPage({ params }) {
   return (
     <main className="min-h-screen bg-[#FFFDF9] text-gray-900 font-marathi">
       {/* 1. Header Navigation */}
-      <PortalNavbar mandal={mandal} />
+      <PortalNavbar mandalName={mandal.name} slug={mandal.slug} />
 
       {/* 2. Hero Section */}
       <HeroSection mandal={mandal} />
