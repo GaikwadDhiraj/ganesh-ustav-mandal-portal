@@ -4,10 +4,24 @@ import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function MapSection({ mandal }) {
-  const mapUrl = mandal.googleMapUrl;
+  const rawMapUrl = mandal.googleMapUrl;
+
+  // Convert any Google URL or address into a clean, valid embeddable Google Map URL
+  const getEmbedMapUrl = () => {
+    if (rawMapUrl && (rawMapUrl.includes("/maps/embed") || rawMapUrl.includes("output=embed"))) {
+      return rawMapUrl;
+    }
+    const query = encodeURIComponent(`${mandal.name || ""} ${mandal.address || ""} ${mandal.city || "Pune"}`.trim());
+    return `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  };
+
+  const embedUrl = getEmbedMapUrl();
+  const directMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${mandal.name || ""} ${mandal.address || ""} ${mandal.city || ""}`
+  )}`;
 
   return (
-    <section id="map" className="py-20 bg-white relative">
+    <section id="map" className="py-20 bg-white relative font-marathi">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
@@ -57,43 +71,31 @@ export default function MapSection({ mandal }) {
             </div>
 
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mandal.name + " " + mandal.address)}`}
+              href={directMapsSearchUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button className="w-full justify-center gap-2" variant="default">
+              <Button className="w-full justify-center gap-2 font-bold" variant="default">
                 <Navigation className="w-4 h-4" />
-                गूगल मॅपमध्ये मार्ग पहा
+                गूगल मॅपमध्ये मार्ग पहा (Open Map)
                 <ExternalLink className="w-3.5 h-3.5 opacity-70" />
               </Button>
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe */}
+          {/* Embedded Google Map Iframe (Guaranteed embed mode - No X-Frame refusal) */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
-            {mapUrl && mapUrl.includes("http") ? (
-              <iframe
-                src={mapUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0, minHeight: "380px" }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={`${mandal.name} Google Map Location`}
-                className="w-full h-full rounded-3xl"
-              ></iframe>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-amber-50/50">
-                <MapPin className="w-16 h-16 text-amber-500 animate-bounce mb-3" />
-                <h4 className="text-lg font-bold font-marathi-heading text-gray-900">
-                  {mandal.address}, {mandal.city}
-                </h4>
-                <p className="text-xs text-gray-500 max-w-sm mt-1">
-                  मॅप लोड होत नसल्यास वरील बटनावर क्लिक करून थेट गूगल मॅपवर दिशा मिळवा.
-                </p>
-              </div>
-            )}
+            <iframe
+              src={embedUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0, minHeight: "400px" }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title={`${mandal.name} Google Map Location`}
+              className="w-full h-full rounded-3xl"
+            ></iframe>
           </div>
 
         </div>
