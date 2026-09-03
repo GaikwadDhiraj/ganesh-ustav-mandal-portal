@@ -4,7 +4,6 @@ import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function parseGoogleMapSrc(input, mandalName, address, city) {
-  // Default address-based map system
   const defaultQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
   const defaultEmbed = `https://maps.google.com/maps?q=${defaultQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
@@ -14,7 +13,7 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
 
   let str = input.trim();
 
-  // If Admin pasted full <iframe src="..."> HTML code from Google Maps
+  // Handle pasted <iframe src="..."> HTML code
   if (str.includes("<iframe") && str.includes("src=")) {
     const match = str.match(/src=["']([^"']+)["']/);
     if (match && match[1]) {
@@ -22,29 +21,49 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
     }
   }
 
-  // If Admin pasted a direct Google Maps embed URL
+  // Handle direct Google Maps embed URL
   if (str.includes("/maps/embed") || str.includes("output=embed")) {
     return str;
   }
 
-  // Default address-based map query
+  // Handle direct share URL or location query
+  if (str.startsWith("http")) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(str)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  }
+
   return defaultEmbed;
 }
 
+export function parseDirectMapUrl(input, mandalName, address, city) {
+  const fallback = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${mandalName || ""} ${address || ""} ${city || ""}`.trim()
+  )}`;
+
+  if (!input || typeof input !== "string" || !input.trim()) return fallback;
+  let str = input.trim();
+
+  // If user or admin pasted <iframe src="..."> in url field, extract src URL
+  if (str.includes("<iframe") && str.includes("src=")) {
+    const match = str.match(/src=["']([^"']+)["']/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  if (str.startsWith("http")) return str;
+  return fallback;
+}
+
 export default function MapSection({ mandal }) {
-  // 1. Embedded side frame map: Prefer Admin's custom googleMapIframe code if available, else parse fallback
+  // 1. Embedded map src: Check Admin's googleMapIframe first, then googleMapUrl, then fallback
   const mapInput = (mandal.googleMapIframe && mandal.googleMapIframe.trim())
     ? mandal.googleMapIframe
     : mandal.googleMapUrl;
 
   const embedUrl = parseGoogleMapSrc(mapInput, mandal.name, mandal.address, mandal.city);
 
-  // 2. Open Map Button Link: Uses the user-provided HTTPS share link (e.g. https://maps.app.goo.gl/...)
-  const directMapsUrl = (mandal.googleMapUrl && mandal.googleMapUrl.startsWith("http") && !mandal.googleMapUrl.includes("<iframe"))
-    ? mandal.googleMapUrl
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${mandal.name || ""} ${mandal.address || ""} ${mandal.city || ""}`
-      )}`;
+  // 2. Open Map Button URL: Check googleMapUrl first (or extracted src)
+  const directMapsUrl = parseDirectMapUrl(mandal.googleMapUrl || mandal.googleMapIframe, mandal.name, mandal.address, mandal.city);
 
   return (
     <section id="map" className="py-20 bg-white relative font-marathi">
@@ -96,7 +115,6 @@ export default function MapSection({ mandal }) {
               </div>
             </div>
 
-            {/* Button opening user's exact HTTPS share link */}
             <a
               href={directMapsUrl}
               target="_blank"
@@ -110,7 +128,7 @@ export default function MapSection({ mandal }) {
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe (Uses Admin Custom googleMapIframe if provided, else previous address map system) */}
+          {/* Embedded Google Map Iframe */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
             <iframe
               src={embedUrl}

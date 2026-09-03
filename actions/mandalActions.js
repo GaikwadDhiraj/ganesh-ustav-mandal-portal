@@ -168,6 +168,7 @@ export async function registerMandal(formData) {
           gallery: true
         }
       });
+      inMemoryMandals.unshift(created);
       return { success: true, mandal: created, slug: created.slug };
     } catch (dbErr) {
       console.warn("DB offline/fallback to in-memory store:", dbErr.message);
@@ -226,6 +227,7 @@ export async function approveMandalStatus(id, newStatus = "APPROVED") {
         where: { id },
         data: { status: newStatus }
       });
+      updateInMemoryMandal(id, updated);
       return { success: true, mandal: updated };
     } catch (dbErr) {
       const target = inMemoryMandals.find(m => m.id === id);
@@ -238,6 +240,16 @@ export async function approveMandalStatus(id, newStatus = "APPROVED") {
   } catch (err) {
     return { success: false, error: err.message };
   }
+}
+
+export async function updateInMemoryMandal(id, data) {
+  const index = inMemoryMandals.findIndex(m => m.id === id || (data.slug && m.slug === data.slug));
+  if (index !== -1) {
+    inMemoryMandals[index] = { ...inMemoryMandals[index], ...data };
+  } else {
+    inMemoryMandals.unshift({ id: id || "mandal-" + Date.now(), ...data });
+  }
+  return { success: true, mandal: data };
 }
 
 export async function deleteMandalFromStore(id) {

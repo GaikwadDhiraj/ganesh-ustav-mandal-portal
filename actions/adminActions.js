@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
-import { getAllMandals, approveMandalStatus, deleteMandalFromStore } from "./mandalActions";
+import { getAllMandals, approveMandalStatus, deleteMandalFromStore, updateInMemoryMandal } from "./mandalActions";
 
 let inMemorySettings = {
   id: "default-settings",
@@ -35,10 +35,16 @@ export async function updateMandalStatusAdmin(id, status, customSlug = null) {
     if (customSlug) {
       updateData.slug = slugify(customSlug);
     }
-    const updated = await prisma.mandal.update({
-      where: { id },
-      data: updateData
-    });
+    let updated;
+    try {
+      updated = await prisma.mandal.update({
+        where: { id },
+        data: updateData
+      });
+    } catch (e) {
+      // Fallback
+    }
+    updateInMemoryMandal(id, updated || updateData);
     return { success: true, mandal: updated };
   } catch (err) {
     return await approveMandalStatus(id, status);
@@ -57,6 +63,7 @@ export async function deleteMandalAdmin(id) {
     } catch (dbErr) {
       deleteMandalFromStore(id);
     }
+    deleteMandalFromStore(id);
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message || "हटवताना त्रुटी आली." };
@@ -96,6 +103,38 @@ export async function updatePlatformSettings(adminUpiId, registrationFee) {
 export async function updateMandalAdmin(id, data) {
   try {
     const targetSlug = slugify(data.slug || data.name);
+    const payload = {
+      slug: targetSlug,
+      name: data.name,
+      tagline: data.tagline,
+      establishedYear: data.establishedYear,
+      address: data.address,
+      city: data.city,
+      contactPerson: data.contactPerson,
+      contactPhone: data.contactPhone,
+      contactEmail: data.contactEmail,
+      shortDescription: (data.shortDescription || "").slice(0, 150),
+      aboutText: (data.aboutText || "").slice(0, 1000),
+      heroImageUrl: data.heroImageUrl,
+      upiId: data.upiId,
+      qrCodeUrl: data.qrCodeUrl,
+      googleMapUrl: data.googleMapUrl,
+      googleMapIframe: data.googleMapIframe,
+      registrationFeeTxnId: data.registrationFeeTxnId,
+      registrationFeeAmount: parseFloat(data.registrationFeeAmount) || 501,
+      status: data.status,
+      aboutHighlight1Title: data.aboutHighlight1Title,
+      aboutHighlight1Desc: data.aboutHighlight1Desc,
+      aboutHighlight2Title: data.aboutHighlight2Title,
+      aboutHighlight2Desc: data.aboutHighlight2Desc,
+      aboutHighlight3Title: data.aboutHighlight3Title,
+      aboutHighlight3Desc: data.aboutHighlight3Desc,
+      aboutHighlight4Title: data.aboutHighlight4Title,
+      aboutHighlight4Desc: data.aboutHighlight4Desc,
+      events: data.events || [],
+      members: data.members || [],
+      gallery: data.gallery || []
+    };
     
     try {
       // Transactional delete & recreate related arrays to support full edit capabilities
@@ -168,10 +207,13 @@ export async function updateMandalAdmin(id, data) {
           }
         });
       });
+
+      updateInMemoryMandal(id, updated);
       return { success: true, mandal: updated };
     } catch (dbErr) {
       console.warn("DB update fallback:", dbErr.message);
-      return { success: true, mandal: data };
+      updateInMemoryMandal(id, payload);
+      return { success: true, mandal: payload };
     }
   } catch (err) {
     return { success: false, error: err.message };
