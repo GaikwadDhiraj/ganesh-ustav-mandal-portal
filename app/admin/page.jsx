@@ -920,17 +920,31 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-1 md:col-span-2">
+                      <label className="text-xs font-bold text-gray-800 block">
+                        १. अर्जदाराने दिलेली गूगल मॅप लिंक (User Map Share Link - Open Map बटनासाठी)
+                      </label>
+                      <Input
+                        value={editingMandal.googleMapUrl || ""}
+                        onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
+                        placeholder="उदा. https://maps.app.goo.gl/fTe56vxqsKrLss7MA"
+                      />
+                      <p className="text-[11px] text-gray-500 font-medium">
+                        * ही HTTPS लिंक पोर्टलमधील 'गूगल मॅपमध्ये मार्ग पहा (Open Map Link)' बटणासाठी वापरली जाते.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 md:col-span-2">
                       <label className="text-xs font-bold text-amber-900 block">
-                        गूगल मॅप Iframe Embed कोड / कस्टम मॅप सेक्शन (Google Map Iframe HTML Code)
+                        २. ॲडमिन मॅप Iframe Embed कोड (Admin Custom Map Iframe Code - मॅप फ्रेमसाठी)
                       </label>
                       <Textarea
                         rows={2}
-                        placeholder="उदा. <iframe src='https://www.google.com/maps/embed?pb=...' ...></iframe> किंवा मॅप लिंक"
-                        value={editingMandal.googleMapUrl || ""}
-                        onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
+                        placeholder="उदा. <iframe src='https://www.google.com/maps/embed?pb=...' ...></iframe> किंवा embed URL"
+                        value={editingMandal.googleMapIframe || ""}
+                        onChange={(e) => setEditingMandal({ ...editingMandal, googleMapIframe: e.target.value })}
                       />
                       <p className="text-[11px] text-gray-500 font-medium">
-                        * ॲडमिन सूचना: येथे गूगल मॅपचा संपूर्ण &lt;iframe src="..."&gt; कोड पेस्ट केल्यास वेब पोर्टलवर तोच कस्टम Iframe मॅप दिसेल.
+                        * ॲडमिन सूचना: अर्जदाराची लिंक तपासल्यानंतर गूगल मॅपवरील Share ➔ Embed a map चा &lt;iframe src="..."&gt; कोड येथे टाका (पोर्टल मॅप फ्रेमसाठी).
                       </p>
                     </div>
                   </div>

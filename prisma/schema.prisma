@@ -29,6 +29,7 @@ model Mandal {
   upiId                 String?
   qrCodeUrl             String?
   googleMapUrl          String?
+  googleMapIframe       String?
   registrationFeeTxnId  String?
   registrationFeeAmount Float?       @default(501)
   status                MandalStatus @default(PENDING)

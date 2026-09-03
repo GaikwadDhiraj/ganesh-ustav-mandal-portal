@@ -45,6 +45,7 @@ export async function registerMandal(formData) {
     const upiId = formData.upiId || "";
     const qrCodeUrl = formData.qrCodeUrl || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=${upiId}` : "");
     const googleMapUrl = formData.googleMapUrl || "";
+    const googleMapIframe = formData.googleMapIframe || "";
 
     const registrationFeeTxnId = formData.registrationFeeTxnId || "";
     const registrationFeeAmount = parseFloat(formData.registrationFeeAmount) || 501;
@@ -87,6 +88,7 @@ export async function registerMandal(formData) {
       upiId,
       qrCodeUrl,
       googleMapUrl,
+      googleMapIframe,
       registrationFeeTxnId,
       registrationFeeAmount,
       aboutHighlight1Title,
@@ -123,6 +125,7 @@ export async function registerMandal(formData) {
           upiId: newMandal.upiId,
           qrCodeUrl: newMandal.qrCodeUrl,
           googleMapUrl: newMandal.googleMapUrl,
+          googleMapIframe: newMandal.googleMapIframe,
           registrationFeeTxnId: newMandal.registrationFeeTxnId,
           registrationFeeAmount: newMandal.registrationFeeAmount,
           aboutHighlight1Title: newMandal.aboutHighlight1Title,

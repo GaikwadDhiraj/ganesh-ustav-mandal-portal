@@ -4,7 +4,7 @@ import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function parseGoogleMapSrc(input, mandalName, address, city) {
-  // Previous default address-based map system
+  // Default address-based map system
   const defaultQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
   const defaultEmbed = `https://maps.google.com/maps?q=${defaultQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
@@ -27,14 +27,19 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
     return str;
   }
 
-  // Otherwise, use the previous address-based embed map system
+  // Default address-based map query
   return defaultEmbed;
 }
 
 export default function MapSection({ mandal }) {
-  const embedUrl = parseGoogleMapSrc(mandal.googleMapUrl, mandal.name, mandal.address, mandal.city);
+  // 1. Embedded side frame map: Prefer Admin's custom googleMapIframe code if available, else parse fallback
+  const mapInput = (mandal.googleMapIframe && mandal.googleMapIframe.trim())
+    ? mandal.googleMapIframe
+    : mandal.googleMapUrl;
 
-  // Direct map link for the "Open Map Link" button (uses the user's https link if provided)
+  const embedUrl = parseGoogleMapSrc(mapInput, mandal.name, mandal.address, mandal.city);
+
+  // 2. Open Map Button Link: Uses the user-provided HTTPS share link (e.g. https://maps.app.goo.gl/...)
   const directMapsUrl = (mandal.googleMapUrl && mandal.googleMapUrl.startsWith("http") && !mandal.googleMapUrl.includes("<iframe"))
     ? mandal.googleMapUrl
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -91,6 +96,7 @@ export default function MapSection({ mandal }) {
               </div>
             </div>
 
+            {/* Button opening user's exact HTTPS share link */}
             <a
               href={directMapsUrl}
               target="_blank"
@@ -104,7 +110,7 @@ export default function MapSection({ mandal }) {
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe (Uses Admin Custom Embed if added, else previous address map system) */}
+          {/* Embedded Google Map Iframe (Uses Admin Custom googleMapIframe if provided, else previous address map system) */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
             <iframe
               src={embedUrl}

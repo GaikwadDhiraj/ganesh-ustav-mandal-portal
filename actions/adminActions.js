@@ -124,6 +124,7 @@ export async function updateMandalAdmin(id, data) {
             upiId: data.upiId,
             qrCodeUrl: data.qrCodeUrl,
             googleMapUrl: data.googleMapUrl,
+            googleMapIframe: data.googleMapIframe,
             registrationFeeTxnId: data.registrationFeeTxnId,
             registrationFeeAmount: parseFloat(data.registrationFeeAmount) || 501,
             status: data.status,
