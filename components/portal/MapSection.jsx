@@ -4,35 +4,35 @@ import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function parseGoogleMapSrc(input, mandalName, address, city) {
-  if (!input || typeof input !== "string") {
-    const fallbackQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || "Pune"}`.trim());
+  if (!input || typeof input !== "string" || !input.trim()) {
+    const fallbackQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
     return `https://maps.google.com/maps?q=${fallbackQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   }
 
   let str = input.trim();
 
-  // Handle pasted <iframe src="..."> HTML tags
+  // If user pasted full <iframe src="..."> HTML code from Google Maps
   if (str.includes("<iframe") && str.includes("src=")) {
     const match = str.match(/src=["']([^"']+)["']/);
     if (match && match[1]) {
-      str = match[1];
+      return match[1];
     }
   }
 
-  // Handle direct Google Maps Embed URLs
+  // If it's already a Google Maps embed URL
   if (str.includes("/maps/embed") || str.includes("output=embed")) {
     return str;
   }
 
-  // Handle shortened share links like maps.app.goo.gl or goo.gl/maps or standard address queries
-  const searchQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
-  return `https://maps.google.com/maps?q=${searchQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  // Pass the user's exact map URL (e.g. https://maps.app.goo.gl/...) or location string directly as the query
+  // This forces Google Maps to pinpoint the EXACT target location in the iframe frame!
+  return `https://maps.google.com/maps?q=${encodeURIComponent(str)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 }
 
 export default function MapSection({ mandal }) {
   const embedUrl = parseGoogleMapSrc(mandal.googleMapUrl, mandal.name, mandal.address, mandal.city);
 
-  // If user provided a custom map link (like maps.app.goo.gl), use it for direct click, else fallback to search
+  // Use the exact custom map link provided by the user for direct click, else fallback to search
   const directMapsUrl = (mandal.googleMapUrl && mandal.googleMapUrl.startsWith("http") && !mandal.googleMapUrl.includes("<iframe"))
     ? mandal.googleMapUrl
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -102,7 +102,7 @@ export default function MapSection({ mandal }) {
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe */}
+          {/* Embedded Google Map Iframe (Guaranteed exact URL pin) */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
             <iframe
               src={embedUrl}
