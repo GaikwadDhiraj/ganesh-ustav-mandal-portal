@@ -3,8 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { DEMO_MANDALS } from "@/lib/defaultData";
+import { loadMandalsFromFile, saveMandalsToFile } from "@/lib/jsonStore";
 
-let inMemoryMandals = [...DEMO_MANDALS];
+let inMemoryMandals = loadMandalsFromFile();
 
 export async function generateUniqueSlug(baseName, city = "", estYear = "") {
   const baseSlug = slugify(`${baseName} ${city} ${estYear}`);
@@ -16,7 +17,8 @@ export async function generateUniqueSlug(baseName, city = "", estYear = "") {
     try {
       existing = await prisma.mandal.findUnique({ where: { slug: candidate } });
     } catch (e) {
-      existing = inMemoryMandals.find(m => m.slug === candidate);
+      const mandals = loadMandalsFromFile();
+      existing = mandals.find(m => m.slug === candidate);
     }
     if (!existing) {
       return candidate;
@@ -100,12 +102,14 @@ export async function registerMandal(formData) {
       aboutHighlight4Title,
       aboutHighlight4Desc,
       status: "PENDING",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       events: events.map((e, idx) => ({ ...e, id: `evt-${Date.now()}-${idx}`, order: idx })),
       members: members.map((m, idx) => ({ ...m, id: `mem-${Date.now()}-${idx}`, order: idx })),
       gallery: gallery.map((g, idx) => ({ ...g, id: `gal-${Date.now()}-${idx}`, order: idx }))
     };
+
+    let createdMandal = newMandal;
 
     try {
       const created = await prisma.mandal.create({
@@ -168,13 +172,22 @@ export async function registerMandal(formData) {
           gallery: true
         }
       });
-      inMemoryMandals.unshift(created);
-      return { success: true, mandal: created, slug: created.slug };
+      createdMandal = created;
     } catch (dbErr) {
-      console.warn("DB offline/fallback to in-memory store:", dbErr.message);
-      inMemoryMandals.unshift(newMandal);
-      return { success: true, mandal: newMandal, slug: newMandal.slug };
+      console.warn("DB offline/fallback to file store:", dbErr.message);
     }
+
+    // ALWAYS persist to file storage and memory so data is NEVER lost!
+    inMemoryMandals = loadMandalsFromFile();
+    const existingIdx = inMemoryMandals.findIndex(m => m.id === createdMandal.id || m.slug === createdMandal.slug);
+    if (existingIdx !== -1) {
+      inMemoryMandals[existingIdx] = createdMandal;
+    } else {
+      inMemoryMandals.unshift(createdMandal);
+    }
+    saveMandalsToFile(inMemoryMandals);
+
+    return { success: true, mandal: createdMandal, slug: createdMandal.slug };
   } catch (err) {
     console.error("registerMandal error:", err);
     return { success: false, error: err.message || "नोंदणी करताना त्रुटी आली." };
@@ -182,9 +195,12 @@ export async function registerMandal(formData) {
 }
 
 export async function getMandalBySlug(slug) {
+  if (!slug) return null;
+  const targetSlug = decodeURIComponent(slug).trim().toLowerCase();
+
   try {
     const dbMandal = await prisma.mandal.findUnique({
-      where: { slug },
+      where: { slug: targetSlug },
       include: {
         events: { orderBy: { order: "asc" } },
         members: { orderBy: { order: "asc" } },
@@ -194,11 +210,15 @@ export async function getMandalBySlug(slug) {
 
     if (dbMandal) return dbMandal;
   } catch (dbErr) {
-    // Fallback to memory
+    // Fallback to file storage
   }
 
-  const foundInMemory = inMemoryMandals.find(m => m.slug === slug || m.id === slug);
-  if (foundInMemory) return foundInMemory;
+  const mandals = loadMandalsFromFile();
+  const found = mandals.find(
+    m => (m.slug && m.slug.toLowerCase() === targetSlug) || (m.id && m.id.toLowerCase() === targetSlug)
+  );
+
+  if (found) return found;
 
   return null;
 }
@@ -213,29 +233,41 @@ export async function getAllMandals() {
       },
       orderBy: { createdAt: "desc" }
     });
-    if (mandals && mandals.length > 0) return mandals;
+    if (mandals && mandals.length > 0) {
+      // Keep file storage synced
+      saveMandalsToFile(mandals);
+      return mandals;
+    }
   } catch (err) {
     // Fallback
   }
-  return inMemoryMandals;
+  return loadMandalsFromFile();
 }
 
 export async function approveMandalStatus(id, newStatus = "APPROVED") {
   try {
+    let updatedMandal = null;
     try {
-      const updated = await prisma.mandal.update({
+      updatedMandal = await prisma.mandal.update({
         where: { id },
         data: { status: newStatus }
       });
-      updateInMemoryMandal(id, updated);
-      return { success: true, mandal: updated };
     } catch (dbErr) {
-      const target = inMemoryMandals.find(m => m.id === id);
-      if (target) {
-        target.status = newStatus;
-        return { success: true, mandal: target };
-      }
+      // Fallback
     }
+
+    inMemoryMandals = loadMandalsFromFile();
+    const target = inMemoryMandals.find(m => m.id === id);
+    if (target) {
+      target.status = newStatus;
+      saveMandalsToFile(inMemoryMandals);
+      return { success: true, mandal: target };
+    } else if (updatedMandal) {
+      inMemoryMandals.unshift(updatedMandal);
+      saveMandalsToFile(inMemoryMandals);
+      return { success: true, mandal: updatedMandal };
+    }
+
     return { success: false, error: "मंडळ सापडले नाही." };
   } catch (err) {
     return { success: false, error: err.message };
@@ -243,16 +275,20 @@ export async function approveMandalStatus(id, newStatus = "APPROVED") {
 }
 
 export async function updateInMemoryMandal(id, data) {
+  inMemoryMandals = loadMandalsFromFile();
   const index = inMemoryMandals.findIndex(m => m.id === id || (data.slug && m.slug === data.slug));
   if (index !== -1) {
     inMemoryMandals[index] = { ...inMemoryMandals[index], ...data };
   } else {
     inMemoryMandals.unshift({ id: id || "mandal-" + Date.now(), ...data });
   }
+  saveMandalsToFile(inMemoryMandals);
   return { success: true, mandal: data };
 }
 
 export async function deleteMandalFromStore(id) {
+  inMemoryMandals = loadMandalsFromFile();
   inMemoryMandals = inMemoryMandals.filter(m => m.id !== id);
+  saveMandalsToFile(inMemoryMandals);
   return { success: true };
 }

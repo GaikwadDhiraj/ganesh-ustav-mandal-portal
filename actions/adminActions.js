@@ -3,12 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { getAllMandals, approveMandalStatus, deleteMandalFromStore, updateInMemoryMandal } from "./mandalActions";
+import { loadSettingsFromFile, saveSettingsToFile } from "@/lib/jsonStore";
 
-let inMemorySettings = {
-  id: "default-settings",
-  adminUpiId: "8600570542@paytm",
-  registrationFee: 501
-};
+let inMemorySettings = loadSettingsFromFile();
 
 export async function getAdminDashboardStats() {
   const mandals = await getAllMandals();
@@ -35,7 +32,7 @@ export async function updateMandalStatusAdmin(id, status, customSlug = null) {
     if (customSlug) {
       updateData.slug = slugify(customSlug);
     }
-    let updated;
+    let updated = null;
     try {
       updated = await prisma.mandal.update({
         where: { id },
@@ -73,16 +70,20 @@ export async function deleteMandalAdmin(id) {
 export async function getPlatformSettings() {
   try {
     const setting = await prisma.platformSetting.findFirst();
-    if (setting) return setting;
+    if (setting) {
+      saveSettingsToFile(setting);
+      return setting;
+    }
   } catch (err) {
-    // Fallback to in-memory settings
+    // Fallback to file storage settings
   }
-  return inMemorySettings;
+  return loadSettingsFromFile();
 }
 
 export async function updatePlatformSettings(adminUpiId, registrationFee) {
   try {
     const feeNumber = parseFloat(registrationFee) || 501;
+    const settingsPayload = { id: "default-settings", adminUpiId, registrationFee: feeNumber };
     try {
       const updated = await prisma.platformSetting.upsert({
         where: { id: "default-settings" },
@@ -90,10 +91,12 @@ export async function updatePlatformSettings(adminUpiId, registrationFee) {
         create: { id: "default-settings", adminUpiId, registrationFee: feeNumber }
       });
       inMemorySettings = updated;
+      saveSettingsToFile(updated);
       return { success: true, settings: updated };
     } catch (dbErr) {
-      inMemorySettings = { id: "default-settings", adminUpiId, registrationFee: feeNumber };
-      return { success: true, settings: inMemorySettings };
+      inMemorySettings = settingsPayload;
+      saveSettingsToFile(settingsPayload);
+      return { success: true, settings: settingsPayload };
     }
   } catch (err) {
     return { success: false, error: err.message };
@@ -104,6 +107,7 @@ export async function updateMandalAdmin(id, data) {
   try {
     const targetSlug = slugify(data.slug || data.name);
     const payload = {
+      id,
       slug: targetSlug,
       name: data.name,
       tagline: data.tagline,
