@@ -4,7 +4,7 @@ import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function parseGoogleMapSrc(input, mandalName, address, city) {
-  // Default address-based map
+  // Previous default address-based map system
   const defaultQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
   const defaultEmbed = `https://maps.google.com/maps?q=${defaultQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
@@ -14,7 +14,7 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
 
   let str = input.trim();
 
-  // If Admin or Mandal pasted full <iframe src="..."> HTML code from Google Maps
+  // If Admin pasted full <iframe src="..."> HTML code from Google Maps
   if (str.includes("<iframe") && str.includes("src=")) {
     const match = str.match(/src=["']([^"']+)["']/);
     if (match && match[1]) {
@@ -22,23 +22,19 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
     }
   }
 
-  // If it's a direct Google Maps embed URL
+  // If Admin pasted a direct Google Maps embed URL
   if (str.includes("/maps/embed") || str.includes("output=embed")) {
     return str;
   }
 
-  // If it's a custom share link
-  if (str.startsWith("http")) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(str)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-  }
-
+  // Otherwise, use the previous address-based embed map system
   return defaultEmbed;
 }
 
 export default function MapSection({ mandal }) {
   const embedUrl = parseGoogleMapSrc(mandal.googleMapUrl, mandal.name, mandal.address, mandal.city);
 
-  // Direct map link for the open map button
+  // Direct map link for the "Open Map Link" button (uses the user's https link if provided)
   const directMapsUrl = (mandal.googleMapUrl && mandal.googleMapUrl.startsWith("http") && !mandal.googleMapUrl.includes("<iframe"))
     ? mandal.googleMapUrl
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -108,7 +104,7 @@ export default function MapSection({ mandal }) {
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe (Restored previous behavior + custom iframe support) */}
+          {/* Embedded Google Map Iframe (Uses Admin Custom Embed if added, else previous address map system) */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
             <iframe
               src={embedUrl}
