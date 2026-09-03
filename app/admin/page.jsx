@@ -920,11 +920,18 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-1 md:col-span-2">
-                      <label className="text-xs font-bold text-gray-800">गूगल मॅप Embed URL / Link</label>
-                      <Input
+                      <label className="text-xs font-bold text-amber-900 block">
+                        गूगल मॅप Iframe Embed कोड / कस्टम मॅप सेक्शन (Google Map Iframe HTML Code)
+                      </label>
+                      <Textarea
+                        rows={2}
+                        placeholder="उदा. <iframe src='https://www.google.com/maps/embed?pb=...' ...></iframe> किंवा मॅप लिंक"
                         value={editingMandal.googleMapUrl || ""}
                         onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
                       />
+                      <p className="text-[11px] text-gray-500 font-medium">
+                        * ॲडमिन सूचना: येथे गूगल मॅपचा संपूर्ण &lt;iframe src="..."&gt; कोड पेस्ट केल्यास वेब पोर्टलवर तोच कस्टम Iframe मॅप दिसेल.
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -733,13 +733,19 @@ export default function RegisterMandalPage() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-gray-800">गूगल मॅप Embed URL / HTML Code (Google Map Link)</label>
-                <Input
+                <label className="text-sm font-bold text-amber-900 block">
+                  गूगल मॅप Iframe Embed कोड / कस्टम मॅप सेक्शन (Google Map Iframe HTML Code - ऐच्छिक)
+                </label>
+                <Textarea
                   name="googleMapUrl"
-                  placeholder="उदा. https://www.google.com/maps/embed?pb=... किंवा <iframe src=...>"
+                  rows={2}
+                  placeholder="उदा. <iframe src='https://www.google.com/maps/embed?pb=...' ...></iframe> किंवा मॅप लिंक (मोकळे सोडल्यास मूळ पत्त्यानुसार मॅप जनरेट होईल)"
                   value={formData.googleMapUrl}
                   onChange={handleInputChange}
                 />
+                <p className="text-xs text-gray-500 font-medium">
+                  * ॲडमिन सूचना: गूगल मॅपवरील Share ➔ Embed a map मधील संपूर्ण &lt;iframe src="..."&gt; HTML कोड येथे पेस्ट करू शकता. मोकळे सोडल्यास मंडळाच्या मूळ पत्त्यानुसार मॅप ऑटो जनरेट होईल.
+                </p>
               </div>
             </CardContent>
           </Card>
