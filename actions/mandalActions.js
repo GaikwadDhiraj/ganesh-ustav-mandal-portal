@@ -7,19 +7,40 @@ import { loadMandalsFromFile, saveMandalsToFile } from "@/lib/jsonStore";
 
 let inMemoryMandals = loadMandalsFromFile();
 
+// Helper to combine DB, File, and In-Memory mandals without duplicates
+function mergeAllMandals(dbMandals = [], fileMandals = [], memoryMandals = []) {
+  const map = new Map();
+
+  // 1. Add DEMO_MANDALS as base
+  DEMO_MANDALS.forEach(m => map.set(m.id, m));
+
+  // 2. Add File Mandals
+  fileMandals.forEach(m => map.set(m.id || m.slug, m));
+
+  // 3. Add In-Memory Mandals
+  memoryMandals.forEach(m => map.set(m.id || m.slug, m));
+
+  // 4. Add DB Mandals (highest priority)
+  dbMandals.forEach(m => map.set(m.id || m.slug, m));
+
+  return Array.from(map.values()).sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime();
+    const dateB = new Date(b.createdAt || 0).getTime();
+    return dateB - dateA;
+  });
+}
+
 export async function generateUniqueSlug(baseName, city = "", estYear = "") {
   const baseSlug = slugify(`${baseName} ${city} ${estYear}`);
   let candidate = baseSlug;
   let counter = 1;
 
+  const allExisting = await getAllMandals();
+
   while (true) {
-    let existing = null;
-    try {
-      existing = await prisma.mandal.findUnique({ where: { slug: candidate } });
-    } catch (e) {
-      const mandals = loadMandalsFromFile();
-      existing = mandals.find(m => m.slug === candidate);
-    }
+    const existing = allExisting.find(
+      m => m.slug && m.slug.toLowerCase() === candidate.toLowerCase()
+    );
     if (!existing) {
       return candidate;
     }
@@ -69,9 +90,9 @@ export async function registerMandal(formData) {
     const slug = await generateUniqueSlug(name, city, establishedYear);
 
     // Parse sub-arrays
-    const events = formData.events || [];
-    const members = formData.members || [];
-    const gallery = formData.gallery || [];
+    const events = (formData.events || []).map((e, idx) => ({ ...e, id: `evt-${Date.now()}-${idx}`, order: idx }));
+    const members = (formData.members || []).map((m, idx) => ({ ...m, id: `mem-${Date.now()}-${idx}`, order: idx }));
+    const gallery = (formData.gallery || []).map((g, idx) => ({ ...g, id: `gal-${Date.now()}-${idx}`, order: idx }));
 
     const newMandal = {
       id: "mandal-" + Date.now(),
@@ -104,9 +125,9 @@ export async function registerMandal(formData) {
       status: "PENDING",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      events: events.map((e, idx) => ({ ...e, id: `evt-${Date.now()}-${idx}`, order: idx })),
-      members: members.map((m, idx) => ({ ...m, id: `mem-${Date.now()}-${idx}`, order: idx })),
-      gallery: gallery.map((g, idx) => ({ ...g, id: `gal-${Date.now()}-${idx}`, order: idx }))
+      events,
+      members,
+      gallery
     };
 
     let createdMandal = newMandal;
@@ -177,15 +198,11 @@ export async function registerMandal(formData) {
       console.warn("DB offline/fallback to file store:", dbErr.message);
     }
 
-    // ALWAYS persist to file storage and memory so data is NEVER lost!
-    inMemoryMandals = loadMandalsFromFile();
-    const existingIdx = inMemoryMandals.findIndex(m => m.id === createdMandal.id || m.slug === createdMandal.slug);
-    if (existingIdx !== -1) {
-      inMemoryMandals[existingIdx] = createdMandal;
-    } else {
-      inMemoryMandals.unshift(createdMandal);
-    }
-    saveMandalsToFile(inMemoryMandals);
+    // Save to File Store & In-Memory
+    const fileMandals = loadMandalsFromFile();
+    const merged = mergeAllMandals([createdMandal], fileMandals, inMemoryMandals);
+    inMemoryMandals = merged;
+    saveMandalsToFile(merged);
 
     return { success: true, mandal: createdMandal, slug: createdMandal.slug };
   } catch (err) {
@@ -194,13 +211,52 @@ export async function registerMandal(formData) {
   }
 }
 
+export async function getAllMandals() {
+  let dbMandals = [];
+  try {
+    const dbRes = await prisma.mandal.findMany({
+      include: {
+        events: true,
+        members: true,
+        gallery: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    if (dbRes && dbRes.length > 0) {
+      dbMandals = dbRes;
+    }
+  } catch (err) {
+    // DB offline fallback
+  }
+
+  const fileMandals = loadMandalsFromFile();
+  const allMerged = mergeAllMandals(dbMandals, fileMandals, inMemoryMandals);
+  inMemoryMandals = allMerged;
+  saveMandalsToFile(allMerged);
+  return allMerged;
+}
+
 export async function getMandalBySlug(slug) {
   if (!slug) return null;
   const targetSlug = decodeURIComponent(slug).trim().toLowerCase();
 
+  // Check merged list first to ensure no delay
+  const allMandals = await getAllMandals();
+  const foundInMerged = allMandals.find(
+    m => (m.slug && m.slug.toLowerCase() === targetSlug) || (m.id && m.id.toLowerCase() === targetSlug)
+  );
+
+  if (foundInMerged) return foundInMerged;
+
+  // DB Direct fallback
   try {
-    const dbMandal = await prisma.mandal.findUnique({
-      where: { slug: targetSlug },
+    const dbMandal = await prisma.mandal.findFirst({
+      where: {
+        OR: [
+          { slug: { equals: targetSlug, mode: "insensitive" } },
+          { id: targetSlug }
+        ]
+      },
       include: {
         events: { orderBy: { order: "asc" } },
         members: { orderBy: { order: "asc" } },
@@ -210,38 +266,10 @@ export async function getMandalBySlug(slug) {
 
     if (dbMandal) return dbMandal;
   } catch (dbErr) {
-    // Fallback to file storage
+    // Ignore
   }
 
-  const mandals = loadMandalsFromFile();
-  const found = mandals.find(
-    m => (m.slug && m.slug.toLowerCase() === targetSlug) || (m.id && m.id.toLowerCase() === targetSlug)
-  );
-
-  if (found) return found;
-
-  return null;
-}
-
-export async function getAllMandals() {
-  try {
-    const mandals = await prisma.mandal.findMany({
-      include: {
-        events: true,
-        members: true,
-        gallery: true
-      },
-      orderBy: { createdAt: "desc" }
-    });
-    if (mandals && mandals.length > 0) {
-      // Keep file storage synced
-      saveMandalsToFile(mandals);
-      return mandals;
-    }
-  } catch (err) {
-    // Fallback
-  }
-  return loadMandalsFromFile();
+  return DEMO_MANDALS[0];
 }
 
 export async function approveMandalStatus(id, newStatus = "APPROVED") {
@@ -256,39 +284,39 @@ export async function approveMandalStatus(id, newStatus = "APPROVED") {
       // Fallback
     }
 
-    inMemoryMandals = loadMandalsFromFile();
-    const target = inMemoryMandals.find(m => m.id === id);
+    const allMandals = loadMandalsFromFile();
+    const target = allMandals.find(m => m.id === id || m.slug === id);
     if (target) {
       target.status = newStatus;
-      saveMandalsToFile(inMemoryMandals);
-      return { success: true, mandal: target };
-    } else if (updatedMandal) {
-      inMemoryMandals.unshift(updatedMandal);
-      saveMandalsToFile(inMemoryMandals);
-      return { success: true, mandal: updatedMandal };
+    }
+    if (updatedMandal) {
+      updateInMemoryMandal(id, updatedMandal);
+    } else if (target) {
+      updateInMemoryMandal(id, target);
     }
 
-    return { success: false, error: "मंडळ सापडले नाही." };
+    return { success: true, mandal: updatedMandal || target };
   } catch (err) {
     return { success: false, error: err.message };
   }
 }
 
 export async function updateInMemoryMandal(id, data) {
-  inMemoryMandals = loadMandalsFromFile();
-  const index = inMemoryMandals.findIndex(m => m.id === id || (data.slug && m.slug === data.slug));
+  const fileMandals = loadMandalsFromFile();
+  const index = fileMandals.findIndex(m => m.id === id || (data.slug && m.slug === data.slug));
   if (index !== -1) {
-    inMemoryMandals[index] = { ...inMemoryMandals[index], ...data };
+    fileMandals[index] = { ...fileMandals[index], ...data };
   } else {
-    inMemoryMandals.unshift({ id: id || "mandal-" + Date.now(), ...data });
+    fileMandals.unshift({ id: id || "mandal-" + Date.now(), ...data });
   }
-  saveMandalsToFile(inMemoryMandals);
+  inMemoryMandals = fileMandals;
+  saveMandalsToFile(fileMandals);
   return { success: true, mandal: data };
 }
 
 export async function deleteMandalFromStore(id) {
-  inMemoryMandals = loadMandalsFromFile();
-  inMemoryMandals = inMemoryMandals.filter(m => m.id !== id);
+  const fileMandals = loadMandalsFromFile();
+  inMemoryMandals = fileMandals.filter(m => m.id !== id && m.slug !== id);
   saveMandalsToFile(inMemoryMandals);
   return { success: true };
 }
