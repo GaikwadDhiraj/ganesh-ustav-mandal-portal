@@ -3,19 +3,35 @@
 import { MapPin, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function MapSection({ mandal }) {
-  const rawMapUrl = mandal.googleMapUrl;
+export function parseGoogleMapSrc(input, mandalName, address, city) {
+  if (!input || typeof input !== "string") {
+    const fallbackQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || "Pune"}`.trim());
+    return `https://maps.google.com/maps?q=${fallbackQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  }
 
-  // Convert any Google URL or address into a clean, valid embeddable Google Map URL
-  const getEmbedMapUrl = () => {
-    if (rawMapUrl && (rawMapUrl.includes("/maps/embed") || rawMapUrl.includes("output=embed"))) {
-      return rawMapUrl;
+  let str = input.trim();
+
+  // Handle pasted <iframe src="..."> HTML tags
+  if (str.includes("<iframe") && str.includes("src=")) {
+    const match = str.match(/src=["']([^"']+)["']/);
+    if (match && match[1]) {
+      str = match[1];
     }
-    const query = encodeURIComponent(`${mandal.name || ""} ${mandal.address || ""} ${mandal.city || "Pune"}`.trim());
-    return `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-  };
+  }
 
-  const embedUrl = getEmbedMapUrl();
+  // Handle direct Google Maps Embed URLs
+  if (str.includes("/maps/embed") || str.includes("output=embed")) {
+    return str;
+  }
+
+  // Handle regular Google Maps share links or plain addresses
+  const query = encodeURIComponent(str.startsWith("http") ? `${mandalName || ""} ${address || ""}` : str);
+  return `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+}
+
+export default function MapSection({ mandal }) {
+  const embedUrl = parseGoogleMapSrc(mandal.googleMapUrl, mandal.name, mandal.address, mandal.city);
+
   const directMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${mandal.name || ""} ${mandal.address || ""} ${mandal.city || ""}`
   )}`;
@@ -83,7 +99,7 @@ export default function MapSection({ mandal }) {
             </a>
           </div>
 
-          {/* Embedded Google Map Iframe (Guaranteed embed mode - No X-Frame refusal) */}
+          {/* Embedded Google Map Iframe */}
           <div className="lg:col-span-8 rounded-3xl overflow-hidden border-2 border-amber-200 shadow-xl min-h-[350px] lg:min-h-[420px] relative bg-gray-100">
             <iframe
               src={embedUrl}

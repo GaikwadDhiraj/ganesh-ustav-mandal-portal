@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, ShieldCheck, QrCode, MapPin, Users, HeartHandshake, Eye, CheckCircle2, ChevronLeft, ChevronRight, Phone, Laptop, Smartphone, Megaphone } from "lucide-react";
+import { Sparkles, ArrowRight, ShieldCheck, QrCode, MapPin, Users, HeartHandshake, Eye, CheckCircle2, ChevronLeft, ChevronRight, Phone, Laptop, Smartphone, Megaphone, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getAllMandals } from "@/actions/mandalActions";
+import { ADMIN_TEAM_MEMBERS } from "@/lib/defaultData";
 
 export default function HomePage() {
   const [approvedMandals, setApprovedMandals] = useState([]);
@@ -40,64 +41,55 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#FFFDF9] text-gray-900 font-marathi selection:bg-amber-200">
       
-      {/* Header Bar (Removed Admin button as requested) */}
+      {/* Header Bar with Official Site Logo */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-amber-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-orange-600 to-amber-400 p-0.5 flex items-center justify-center text-white text-xl shadow-md">
-              🌸
-            </div>
+          <Link href="/" className="flex items-center gap-3 group">
+            <img src="/logo.svg" alt="महोत्सव डिजिटल मंच Logo" className="w-12 h-12 object-contain group-hover:scale-105 transition-transform" />
             <div>
               <span className="font-extrabold font-marathi-heading text-lg sm:text-xl text-gray-900 block leading-tight">
                 गणेश मंडळ वेब पोर्टल
               </span>
               <span className="text-xs font-bold text-amber-700">महोत्सव डिजीटल मंच</span>
             </div>
-          </div>
+          </Link>
 
           {/* Clean Header Action: Only Mandal Registration Button */}
           <div className="flex items-center gap-3">
             <Link href="/register">
-              <Button variant="golden" size="sm" className="gap-1.5 text-xs font-bold shadow-md">
-                + मंडळ नोंदणी करा
+              <Button variant="golden" size="sm" className="gap-2 font-bold shadow-md">
+                + स्वतःचे मंडळ पोर्टल तयार करा
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Banner (Removed 'मोफत' text) */}
-      <section className="relative bg-gradient-to-b from-orange-600 via-amber-500 to-amber-50 text-white pt-16 pb-24 lg:pt-24 lg:pb-36 overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 text-center space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2">
-            <Badge variant="golden" className="px-4 py-1.5 text-xs sm:text-sm uppercase tracking-wider shadow-lg font-bold">
-              ✨ गणेशोत्सव डिजीटल क्रांती
-            </Badge>
-          </div>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-orange-600 via-amber-500 to-[#FFFDF9] text-white pt-16 pb-20 px-4 sm:px-8">
+        <div className="max-w-6xl mx-auto text-center space-y-6 relative z-10">
+          <Badge variant="golden" className="px-4 py-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider shadow-lg">
+            ✨ आपल्या गणेशोत्सवासाठी डिजीटल मंच
+          </Badge>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold font-marathi-heading text-amber-50 leading-tight drop-shadow-md">
-            आपल्या गणेश मंडळाचे अधिकृत वेब पोर्टल मिनिटांत तयार करा!
+          <h1 className="text-4xl sm:text-6xl font-extrabold font-marathi-heading tracking-tight text-amber-50 leading-tight">
+            गणेशोत्सव वेब पोर्टल जनरेटर
           </h1>
 
-          <p className="text-lg sm:text-2xl font-bold text-amber-200 font-marathi-heading">
-            ॥ गणपती बाप्पा मोरया! मंगलमूर्ती मोरया! ॥
+          <p className="text-lg sm:text-2xl text-amber-100 max-w-3xl mx-auto font-medium leading-relaxed">
+            तुमच्या गणेशोत्सवासाठी अधिकृत वेब पोर्टल तयार करा. 
+            वेळापत्रक, कार्यकारिणी, गॅलरी आणि ऑनलाइन वर्गणी एकाच ठिकाणी!
           </p>
 
-          <p className="text-base sm:text-lg text-amber-50/90 max-w-3xl mx-auto leading-relaxed font-medium">
-            उत्सव वेळापत्रक, आरतीच्या वेळा, मंडळ कार्यकारिणी, फोटो गॅलरी, ऑनलाईन वर्गणी (QR / UPI ID) आणि गूगल मॅप पत्त्यासह सर्व उपकरणांवर चालणारे आकर्षक वेब पोर्टल.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register">
-              <Button size="lg" variant="golden" className="gap-2 text-base px-8 py-4 shadow-2xl font-bold">
-                तुमच्या मंडळाची नोंदणी करा
+              <Button size="lg" variant="golden" className="w-full sm:w-auto px-8 py-6 text-lg font-bold gap-2 shadow-2xl">
+                तुमच्या मंडळाचे पोर्टल तयार करा
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <a href="#registered-mandals">
-              <Button size="lg" className="bg-white text-orange-700 hover:bg-amber-50 gap-2 border-2 border-white text-base font-bold">
+            <a href="#portal-list">
+              <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg font-bold bg-white/20 text-white hover:bg-white/30 backdrop-blur-md border border-white/40">
                 नोंदणीकृत मंडळे पहा
               </Button>
             </a>
@@ -105,293 +97,213 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Feature Cards Section */}
-      <section className="py-16 -mt-16 relative z-20 max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 border-2 border-amber-200 bg-white shadow-xl rounded-3xl space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
-              📅
-            </div>
-            <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-              वळणदार उत्सव वेळापत्रक (Path Schedule)
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed font-medium">
-              आरती, महाप्रसाद व सांस्कृतिक कार्यक्रमांची आकर्षक ॲनिमेटेड टाइमलाइन.
-            </p>
-          </Card>
+      {/* 3 Easy Steps Information */}
+      <section className="py-16 px-4 sm:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-amber-700 font-bold text-sm tracking-widest uppercase bg-amber-100 px-4 py-1.5 rounded-full inline-block mb-3 border border-amber-300">
+            पोर्टल निर्मिती प्रक्रिया
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading text-gray-900">
+            केवळ ३ सोप्या टप्प्यांत तुमचे वेब पोर्टल तयार करा
+          </h2>
+          <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full mt-4"></div>
+        </div>
 
-          <Card className="p-6 border-2 border-amber-200 bg-white shadow-xl rounded-3xl space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl font-bold shadow-md">
-              👥
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          <div className="p-8 rounded-3xl bg-amber-50/60 border-2 border-amber-200 text-center space-y-4 hover:border-amber-400 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-orange-600 text-white flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">
+              १
             </div>
             <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-              कार्यकारिणी सदस्य स्लाइडर (Members Carousel)
+              १. मंडळाची माहिती भरा
             </h3>
-            <p className="text-sm text-gray-600 leading-relaxed font-medium">
-              अध्यक्ष, सचिव, खजिनदार व कार्यकर्त्यांचे फोटोंसह horizontal कार्ड्स.
+            <p className="text-sm text-gray-600 font-medium leading-relaxed">
+              नाव, स्थापना वर्ष, पत्ता, घोषवाक्य व २ स्वतंत्र वर्णने (संक्षिप्त व सविस्तर) प्रविष्ट करा.
             </p>
-          </Card>
+          </div>
 
-          <Card className="p-6 border-2 border-amber-200 bg-white shadow-xl rounded-3xl space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-yellow-500 text-gray-950 flex items-center justify-center text-xl font-bold shadow-md">
-              💳
+          <div className="p-8 rounded-3xl bg-amber-50/60 border-2 border-amber-200 text-center space-y-4 hover:border-amber-400 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">
+              २
             </div>
             <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-              ऑनलाइन वर्गणी (QR & UPI Integration)
+              २. वेळापत्रक, सदस्य व फोटो जोडा
             </h3>
-            <p className="text-sm text-gray-600 leading-relaxed font-medium">
-              भाविकांसाठी डायरेक्ट UPI ID व QR Code द्वारे ऑनलाइन वर्गणी स्वीकारण्याची सोय.
+            <p className="text-sm text-gray-600 font-medium leading-relaxed">
+              उत्सव वेळापत्रक, कार्यकारिणी सदस्य, फोटो गॅलरी आणि वर्गणी UPI ID अपलोड करा.
             </p>
-          </Card>
+          </div>
+
+          <div className="p-8 rounded-3xl bg-amber-50/60 border-2 border-amber-200 text-center space-y-4 hover:border-amber-400 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold mx-auto shadow-lg">
+              ३
+            </div>
+            <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
+              ३. वेब पोर्टल सक्रिय करा
+            </h3>
+            <p className="text-sm text-gray-600 font-medium leading-relaxed">
+              फॉर्म सादर करा. ॲडमिन मंजुरीनंतर तुमचा स्वतःचा वेब लिंक (Slug) व QR कोड सक्रिय होईल!
+            </p>
+          </div>
+
         </div>
       </section>
 
-      {/* Registration Steps Section (पोर्टल सूची आधी नोंदणी प्रक्रियेच्या पायऱ्या) */}
-      <section className="py-16 bg-gradient-to-b from-amber-50/60 via-white to-amber-50/40 border-y border-amber-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
+      {/* Portal List with Pagination */}
+      <section id="portal-list" className="py-16 bg-gradient-to-b from-amber-50/50 to-white px-4 sm:px-8 border-t border-amber-200">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="text-center max-w-3xl mx-auto">
             <span className="text-amber-700 font-bold text-sm tracking-widest uppercase bg-amber-100 px-4 py-1.5 rounded-full inline-block mb-3 border border-amber-300">
-              सोपी प्रक्रिया
+              पोर्टल सूची
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading text-gray-900">
-              वेब पोर्टल नोंदणी कशी करावी? (Registration Steps)
+              नोंदणीकृत गणेश मंडळे (Registered Portals)
             </h2>
             <p className="text-gray-600 text-sm sm:text-base mt-2 font-medium">
-              केवळ ३ सोप्या टप्प्यांत तुमच्या मंडळाचे लाइव्ह वेब पोर्टल मिळवा
+              खालील मंडळांच्या अधिकृत वेब पोर्टलवर जाऊन दर्शन व माहिती मिळवा.
             </p>
             <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full mt-4"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Step 1 */}
-            <div className="p-8 rounded-3xl bg-white border-2 border-amber-200 shadow-lg relative text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-orange-600 text-white font-extrabold font-marathi-heading text-2xl flex items-center justify-center mx-auto shadow-md">
-                १
-              </div>
-              <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-                मंडळाची माहिती भरा
-              </h3>
-              <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                मंडळाचे नाव, इतिहास, वेळापत्रक, कार्यकारिणी सदस्य, फोटो गॅलरी व वर्गणी QR Code माहिती प्रविष्ट करा.
-              </p>
+          {loading ? (
+            <div className="text-center py-12 text-gray-500 font-bold">
+              मंडळे लोड होत आहेत...
             </div>
-
-            {/* Step 2 */}
-            <div className="p-8 rounded-3xl bg-white border-2 border-amber-200 shadow-lg relative text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white font-extrabold font-marathi-heading text-2xl flex items-center justify-center mx-auto shadow-md">
-                २
-              </div>
-              <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-                ऑनलाइन फी पेमेंट करा
-              </h3>
-              <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                शेवटी दिलेल्या QR कोडवर पोर्टल नोंदणी फी भरून 12 अंकी Transaction ID (UTR) फॉर्ममध्ये टाका.
-              </p>
+          ) : approvedMandals.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-amber-200">
+              <p className="text-gray-500 font-bold font-marathi-heading text-lg">सध्या कोणतेही मंडळ नोंदणीकृत नाही.</p>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedMandals.map((mandal) => (
+                <Card key={mandal.id} className="rounded-3xl border-2 border-amber-200 hover:border-amber-400 transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl flex flex-col justify-between">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="golden" className="text-[11px] font-bold">
+                        स्थापना: {mandal.establishedYear || "सार्वजनिक"}
+                      </Badge>
+                      <Badge variant={mandal.status === "APPROVED" ? "approved" : "pending"}>
+                        {mandal.status === "APPROVED" ? "सक्रिय पोर्टल" : "प्रलंबित"}
+                      </Badge>
+                    </div>
 
-            {/* Step 3 */}
-            <div className="p-8 rounded-3xl bg-white border-2 border-amber-200 shadow-lg relative text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white font-extrabold font-marathi-heading text-2xl flex items-center justify-center mx-auto shadow-md">
-                ३
-              </div>
-              <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-                लाइव्ह पोर्टल व QR Code मिळवा
-              </h3>
-              <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                ॲडमिन पडताळणीनंतर तुमचा वेब पोर्टल लिंक आणि डाऊनलोडेबल QR Code लगेच सक्रिय होईल.
-              </p>
+                    <h3 className="text-xl font-bold font-marathi-heading text-gray-900 line-clamp-2">
+                      {mandal.name}
+                    </h3>
+
+                    <p className="text-xs text-amber-800 font-bold flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                      {mandal.address}, {mandal.city}
+                    </p>
+
+                    <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed font-medium">
+                      {mandal.shortDescription || mandal.aboutText}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-amber-50/80 border-t border-amber-100 flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-mono font-bold text-orange-700 truncate max-w-[150px]">
+                      /mandal/{mandal.slug}
+                    </span>
+
+                    <Link href={`/mandal/${mandal.slug}`}>
+                      <Button size="sm" variant="golden" className="gap-1.5 font-bold text-xs">
+                        <Eye className="w-3.5 h-3.5 text-amber-950" />
+                        वेब पोर्टल पहा
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              ))}
             </div>
+          )}
 
-          </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <Button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                variant="outline"
+                size="sm"
+                className="gap-1 font-bold"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                मागील
+              </Button>
+
+              <span className="text-xs font-bold text-gray-700 px-3">
+                पान {currentPage} पैकी {totalPages}
+              </span>
+
+              <Button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                variant="outline"
+                size="sm"
+                className="gap-1 font-bold"
+              >
+                पुढील
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
         </div>
       </section>
 
-      {/* Registered Mandals Showcase with Pagination */}
-      <section id="registered-mandals" className="py-16 max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-amber-600 font-bold text-sm tracking-widest uppercase bg-amber-100 px-4 py-1.5 rounded-full inline-block mb-3 border border-amber-200">
-            पोर्टल सूची
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading text-gray-900">
-            सक्रिय गणेशोत्सव मंडळ वेब पोर्टल्स
-          </h2>
-          <p className="text-gray-600 text-sm sm:text-base mt-2 font-medium">
-            खालील पोर्टल्सवर क्लिक करून प्रत्यक्ष देखावा व वेळापत्रक पहा
-          </p>
-          <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full mt-4"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {paginatedMandals.map((mandal) => (
-            <Card key={mandal.id} className="overflow-hidden border border-amber-200 hover:border-amber-400 hover:shadow-2xl transition-all duration-300 rounded-3xl flex flex-col justify-between">
-              
-              <div className="relative h-48 bg-orange-900 overflow-hidden">
-                <img
-                  src={mandal.heroImageUrl || "/hero-main-ganesha.jpg"}
-                  alt={mandal.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-                  <Badge variant="golden" className="text-xs font-bold">
-                    स्थापना वर्ष: {mandal.establishedYear || "सार्वजनिक"}
-                  </Badge>
-                </div>
-              </div>
-
-              <CardContent className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-bold text-xl font-marathi-heading text-gray-900 line-clamp-2">
-                    {mandal.name}
-                  </h3>
-                  <p className="text-xs text-amber-700 font-semibold mt-1 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {mandal.address}, {mandal.city}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-2 line-clamp-2 font-medium">
-                    {mandal.aboutText || "श्रींच्या चरणी आमचे सहर्ष नमन."}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-amber-100 flex items-center justify-between">
-                  <span className="text-xs text-gray-500 font-bold">
-                    📱 {mandal.contactPhone}
-                  </span>
-                  <Link href={`/mandal/${mandal.slug}`}>
-                    <Button variant="golden" size="sm" className="gap-1.5 text-xs font-bold">
-                      वेब पोर्टल पहा
-                      <Eye className="w-3.5 h-3.5" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-
-            </Card>
-          ))}
-        </div>
-
-        {/* Pagination Controls for Mandals List */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 pt-12">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-              variant="outline"
-              size="sm"
-              className="gap-1 font-bold"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              मागील (Previous)
-            </Button>
-
-            <span className="text-xs font-bold text-gray-700 px-3">
-              पान {currentPage} पैकी {totalPages}
-            </span>
-
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              variant="outline"
-              size="sm"
-              className="gap-1 font-bold"
-            >
-              पुढील (Next)
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-      </section>
-
-      {/* Website Team Contact Details Section */}
+      {/* Website Team Contact Details Section - ALL 6 ADMINS IN SAME UNIFORM FORMAT */}
       <section className="py-16 bg-[#FFF9EF] border-t border-amber-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+          <div className="text-center max-w-3xl mx-auto">
             <span className="text-amber-700 font-bold text-sm tracking-widest uppercase bg-amber-100 px-4 py-1.5 rounded-full inline-block mb-3 border border-amber-300">
               तांत्रिक मदत व संपर्क
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading text-gray-900">
-              वेबसाईट संपर्क व तांत्रिक टीम (Contact Details)
+              अधिकृत ॲडमिन टीम संपर्क माहिती (Admin Team)
             </h2>
             <p className="text-gray-600 text-sm sm:text-base mt-2 font-medium">
-              वेब पोर्टलबाबत काही समस्या असल्यास खालील प्रतिनिधींशी संपर्क साधा
+              वेब पोर्टलबाबत काही समस्या असल्यास खालील कोणत्याही अधिकृत ॲडमिनशी थेट संपर्क साधा
             </p>
             <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full mt-4"></div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-600 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Dhiraj Gaikwad</h4>
-                <a href="tel:8600570542" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  8600570542
-                </a>
-              </div>
-            </div>
+            {ADMIN_TEAM_MEMBERS.map((admin, idx) => (
+              <div key={idx} className="p-5 rounded-3xl bg-white border-2 border-amber-200 shadow-md hover:shadow-lg hover:border-amber-400 transition-all space-y-3">
+                <div className="flex items-center justify-between">
+                  <Badge variant="golden" className="text-[11px] font-bold">
+                    👑 ॲडमिन #{idx + 1}
+                  </Badge>
+                  <span className="text-xs text-amber-800 font-bold">{admin.designation}</span>
+                </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Kaustubh Ronge</h4>
-                <a href="tel:7498444684" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  7498444684
-                </a>
-              </div>
-            </div>
+                <h4 className="font-extrabold text-lg font-marathi-heading text-gray-900">
+                  {admin.name}
+                </h4>
 
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-700 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Vijay Patil</h4>
-                <a href="tel:7620198805" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  7620198805
-                </a>
-              </div>
-            </div>
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <a
+                    href={`tel:${admin.phone}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+                  >
+                    <Phone className="w-4 h-4" />
+                    कॉल ({admin.phone})
+                  </a>
 
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-yellow-600 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
+                  <a
+                    href={`https://wa.me/91${admin.phone}?text=${encodeURIComponent(`नमस्कार ${admin.name}, मी गणेश मंडळ पोर्टल नोंदणी संदर्भात संपर्क करत आहे.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center p-2 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"
+                    title="WhatsApp वर मेसेज करा"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Vivek Pawar</h4>
-                <a href="tel:9890528006" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  9890528006
-                </a>
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Dipak Pawar</h4>
-                <a href="tel:8669233747" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  8669233747
-                </a>
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-amber-200 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 font-bold">
-                <Phone className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-base font-marathi-heading text-gray-900">Atharv Malavde</h4>
-                <a href="tel:9322027844" className="text-sm font-mono font-bold text-orange-600 hover:underline">
-                  9322027844
-                </a>
-              </div>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>

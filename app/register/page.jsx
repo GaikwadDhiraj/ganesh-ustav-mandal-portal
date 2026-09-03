@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload, CreditCard, Phone, Mail, CheckCircle2 } from "lucide-react";
+import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload, CreditCard, Phone, Mail, CheckCircle2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import ImageUploader from "@/components/ui/image-uploader";
 import { registerMandal } from "@/actions/mandalActions";
 import { getPlatformSettings } from "@/actions/adminActions";
+import { ADMIN_TEAM_MEMBERS } from "@/lib/defaultData";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -195,7 +196,7 @@ export default function RegisterMandalPage() {
             </code>
           </div>
 
-          {/* Single Contact Details Button (Previous 2 buttons removed) */}
+          {/* Single Contact Details Button */}
           <div className="pt-2">
             <Button
               onClick={() => setShowContactModal(true)}
@@ -203,7 +204,7 @@ export default function RegisterMandalPage() {
               className="w-full justify-center gap-2.5 py-3.5 text-base font-bold shadow-xl"
             >
               <Phone className="w-5 h-5 text-amber-950" />
-              संपर्क माहिती / मदतीसाठी संपर्क साधण्यासाठी येथे क्लिक करा (Contact Details)
+              संपर्क माहिती / ॲडमिन टीमशी संपर्क (Contact Details)
             </Button>
           </div>
 
@@ -214,48 +215,61 @@ export default function RegisterMandalPage() {
           </div>
         </Card>
 
-        {/* Contact Details Modal */}
+        {/* Contact Details Modal - Uniform Admin Cards for All 6 Admins */}
         {showContactModal && (
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white max-w-md w-full p-6 rounded-3xl border-4 border-amber-400 shadow-2xl space-y-4">
+            <div className="bg-white max-w-lg w-full p-6 sm:p-8 rounded-3xl border-4 border-amber-400 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b pb-3">
-                <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
-                  अधिकृत संपर्क माहिती (Support Team)
-                </h3>
-                <button onClick={() => setShowContactModal(false)} className="p-1 text-gray-400 hover:text-red-600">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+                  <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
+                    अधिकृत ॲडमिन टीम (Admin Team)
+                  </h3>
+                </div>
+                <button onClick={() => setShowContactModal(false)} className="p-1 text-gray-400 hover:text-red-600 text-xl font-bold">
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-xs text-gray-600 font-medium">
-                  तुमच्या अर्जाच्या स्थितीबद्दल किंवा मदतीसाठी खालील क्रमांकांवर संपर्क साधा:
-                </p>
+              <p className="text-xs text-gray-600 font-medium">
+                तुमच्या अर्जाच्या मंजुरीबद्दल किंवा अधिक माहितीसाठी खालील कोणत्याही ॲडमिनशी संपर्क साधू शकता:
+              </p>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
-                  <span className="text-xs font-bold text-amber-900 block">मुख्य संपर्क अधिकारी / ॲडमिन:</span>
-                  <a href="tel:8600570542" className="text-sm font-mono font-bold text-orange-700 block hover:underline">
-                    📞 धिरज गायकवाड - +91 8600570542
-                  </a>
-                </div>
+              {/* Uniform Grid of all 6 Admins */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {ADMIN_TEAM_MEMBERS.map((admin, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2 hover:border-amber-400 transition-all">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full border border-orange-300">
+                        👑 ॲडमिन #{idx + 1}
+                      </span>
+                    </div>
 
-                <div className="grid grid-cols-1 gap-2 text-xs font-bold text-gray-700">
-                  <div className="p-2.5 bg-gray-50 rounded-lg border">
-                    <span>काउस्तुभ रोंगे:</span> <span className="font-mono text-amber-900">+91 7498444684</span>
+                    <h4 className="font-bold text-sm text-gray-900">
+                      {admin.name}
+                    </h4>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <a
+                        href={`tel:${admin.phone}`}
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        कॉल करा
+                      </a>
+
+                      <a
+                        href={`https://wa.me/91${admin.phone}?text=${encodeURIComponent(`नमस्कार ${admin.name}, मी गणेश मंडळ पोर्टल नोंदणी संदर्भात संपर्क करत आहे.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-colors"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        WhatsApp
+                      </a>
+                    </div>
                   </div>
-                  <div className="p-2.5 bg-gray-50 rounded-lg border">
-                    <span>विजय पाटील:</span> <span className="font-mono text-amber-900">+91 7620198805</span>
-                  </div>
-                  <div className="p-2.5 bg-gray-50 rounded-lg border">
-                    <span>विवेक पवार:</span> <span className="font-mono text-amber-900">+91 9890528006</span>
-                  </div>
-                  <div className="p-2.5 bg-gray-50 rounded-lg border">
-                    <span>दीपक पवार:</span> <span className="font-mono text-amber-900">+91 8669233747</span>
-                  </div>
-                  <div className="p-2.5 bg-gray-50 rounded-lg border">
-                    <span>अथर्व मालवदे:</span> <span className="font-mono text-amber-900">+91 9322027844</span>
-                  </div>
-                </div>
+                ))}
               </div>
 
               <Button onClick={() => setShowContactModal(false)} variant="outline" className="w-full font-bold">
@@ -279,20 +293,20 @@ export default function RegisterMandalPage() {
       {/* Page Header */}
       <header className="bg-gradient-to-r from-orange-600 via-amber-600 to-amber-500 text-white py-12 px-4 sm:px-8 border-b-4 border-amber-400">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold bg-white/20 text-amber-100 hover:bg-white/30 px-3 py-1.5 rounded-full mb-3 backdrop-blur-md transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              मुख्य पृष्ठावर जा
-            </Link>
-            <h1 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading">
-              गणेश मंडळ वेब पोर्टल नोंदणी अर्ज
-            </h1>
-            <p className="text-amber-100 text-sm sm:text-base mt-1 font-medium">
-              तुमच्या गणेशोत्सवासाठी अधिकृत वेब पोर्टल तयार करा.
-            </p>
-          </div>
-          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-3xl">
-            🌺
+          <div className="flex items-center gap-4">
+            <img src="/logo.svg" alt="Logo" className="w-16 h-16 shrink-0 filter drop-shadow-md" />
+            <div>
+              <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold bg-white/20 text-amber-100 hover:bg-white/30 px-3 py-1.5 rounded-full mb-2 backdrop-blur-md transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                मुख्य पृष्ठावर जा
+              </Link>
+              <h1 className="text-3xl sm:text-4xl font-extrabold font-marathi-heading">
+                गणेश मंडळ वेब पोर्टल नोंदणी अर्ज
+              </h1>
+              <p className="text-amber-100 text-sm sm:text-base mt-0.5 font-medium">
+                तुमच्या गणेशोत्सवासाठी अधिकृत वेब पोर्टल तयार करा.
+              </p>
+            </div>
           </div>
         </div>
       </header>
@@ -726,10 +740,10 @@ export default function RegisterMandalPage() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-bold text-gray-800">गूगल मॅप Embed URL (Google Map Link)</label>
+                <label className="text-sm font-bold text-gray-800">गूगल मॅप Embed URL / HTML Code (Google Map Link)</label>
                 <Input
                   name="googleMapUrl"
-                  placeholder="उदा. https://www.google.com/maps/embed?pb=..."
+                  placeholder="उदा. https://www.google.com/maps/embed?pb=... किंवा <iframe src=...>"
                   value={formData.googleMapUrl}
                   onChange={handleInputChange}
                 />
@@ -737,7 +751,7 @@ export default function RegisterMandalPage() {
             </CardContent>
           </Card>
 
-          {/* Section 8: Platform Portal Registration Payment Step */}
+          {/* Section 8: Platform Portal Registration Payment Step Step */}
           <Card className="rounded-3xl border-2 border-orange-400 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-amber-50 shadow-xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-700 font-extrabold text-xl">
