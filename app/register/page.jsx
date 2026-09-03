@@ -179,24 +179,17 @@ export default function RegisterMandalPage() {
             मंडळाचा अर्ज नोंदवला गेला आहे!
           </h2>
 
-          <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-2 text-left">
+          <div className="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-2 text-left">
             <span className="text-xs text-amber-900 font-extrabold uppercase tracking-wider block">ॲडमिन सूचना (Admin Notice):</span>
-            <p className="text-base text-gray-800 font-bold">
-              ॲडमिन लवकरच तुमच्याशी संपर्क साधतील व तुमचा अधिकृत वेब पोर्टल सक्रिय करतील.
+            <p className="text-base text-gray-800 font-bold leading-relaxed">
+              ॲडमिन लवकरच तुमच्याशी संपर्क साधतील व अर्ज पडताळणीनंतर तुमचा अधिकृत वेब पोर्टल सक्रिय करतील.
             </p>
-            <p className="text-xs text-gray-600 font-medium">
-              (Admin will contact you soon and activate your official web portal.)
+            <p className="text-xs text-gray-600 font-medium pt-1">
+              (Admin will contact you soon and activate your official web portal after approval.)
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-amber-200 text-left space-y-1">
-            <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block">तुमच्या मंडळाचा नोंदणीकृत Slug (URL):</span>
-            <code className="text-sm font-mono font-bold text-orange-700 block break-all">
-              /mandal/{submittedSlug}
-            </code>
-          </div>
-
-          {/* Single Contact Details Button */}
+          {/* Single Contact Details Button (URL is hidden until Admin approval) */}
           <div className="pt-2">
             <Button
               onClick={() => setShowContactModal(true)}
@@ -215,7 +208,7 @@ export default function RegisterMandalPage() {
           </div>
         </Card>
 
-        {/* Contact Details Modal - Uniform Admin Cards for All 6 Admins */}
+        {/* Contact Details Modal */}
         {showContactModal && (
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white max-w-lg w-full p-6 sm:p-8 rounded-3xl border-4 border-amber-400 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">

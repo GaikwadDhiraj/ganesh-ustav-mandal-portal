@@ -24,17 +24,20 @@ export function parseGoogleMapSrc(input, mandalName, address, city) {
     return str;
   }
 
-  // Handle regular Google Maps share links or plain addresses
-  const query = encodeURIComponent(str.startsWith("http") ? `${mandalName || ""} ${address || ""}` : str);
-  return `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  // Handle shortened share links like maps.app.goo.gl or goo.gl/maps or standard address queries
+  const searchQuery = encodeURIComponent(`${mandalName || ""} ${address || ""} ${city || ""}`.trim());
+  return `https://maps.google.com/maps?q=${searchQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 }
 
 export default function MapSection({ mandal }) {
   const embedUrl = parseGoogleMapSrc(mandal.googleMapUrl, mandal.name, mandal.address, mandal.city);
 
-  const directMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${mandal.name || ""} ${mandal.address || ""} ${mandal.city || ""}`
-  )}`;
+  // If user provided a custom map link (like maps.app.goo.gl), use it for direct click, else fallback to search
+  const directMapsUrl = (mandal.googleMapUrl && mandal.googleMapUrl.startsWith("http") && !mandal.googleMapUrl.includes("<iframe"))
+    ? mandal.googleMapUrl
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${mandal.name || ""} ${mandal.address || ""} ${mandal.city || ""}`
+      )}`;
 
   return (
     <section id="map" className="py-20 bg-white relative font-marathi">
@@ -87,13 +90,13 @@ export default function MapSection({ mandal }) {
             </div>
 
             <a
-              href={directMapsSearchUrl}
+              href={directMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button className="w-full justify-center gap-2 font-bold" variant="default">
+              <Button className="w-full justify-center gap-2 font-bold shadow-md" variant="default">
                 <Navigation className="w-4 h-4" />
-                गूगल मॅपमध्ये मार्ग पहा (Open Map)
+                गूगल मॅपमध्ये मार्ग पहा (Open Map Link)
                 <ExternalLink className="w-3.5 h-3.5 opacity-70" />
               </Button>
             </a>

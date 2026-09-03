@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
-import { getAllMandals, approveMandalStatus } from "./mandalActions";
+import { getAllMandals, approveMandalStatus, deleteMandalFromStore } from "./mandalActions";
 
 let inMemorySettings = {
   id: "default-settings",
@@ -42,6 +42,24 @@ export async function updateMandalStatusAdmin(id, status, customSlug = null) {
     return { success: true, mandal: updated };
   } catch (err) {
     return await approveMandalStatus(id, status);
+  }
+}
+
+export async function deleteMandalAdmin(id) {
+  try {
+    try {
+      await prisma.$transaction([
+        prisma.eventSchedule.deleteMany({ where: { mandalId: id } }),
+        prisma.mandalMember.deleteMany({ where: { mandalId: id } }),
+        prisma.galleryImage.deleteMany({ where: { mandalId: id } }),
+        prisma.mandal.delete({ where: { id } })
+      ]);
+    } catch (dbErr) {
+      deleteMandalFromStore(id);
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message || "हटवताना त्रुटी आली." };
   }
 }
 

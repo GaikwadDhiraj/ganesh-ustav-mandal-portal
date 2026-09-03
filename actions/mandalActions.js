@@ -196,7 +196,7 @@ export async function getMandalBySlug(slug) {
   const foundInMemory = inMemoryMandals.find(m => m.slug === slug || m.id === slug);
   if (foundInMemory) return foundInMemory;
 
-  return DEMO_MANDALS[0];
+  return null;
 }
 
 export async function getAllMandals() {
@@ -235,4 +235,9 @@ export async function approveMandalStatus(id, newStatus = "APPROVED") {
   } catch (err) {
     return { success: false, error: err.message };
   }
+}
+
+export async function deleteMandalFromStore(id) {
+  inMemoryMandals = inMemoryMandals.filter(m => m.id !== id);
+  return { success: true };
 }

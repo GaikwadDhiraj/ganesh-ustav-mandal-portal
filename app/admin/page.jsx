@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUploader from "@/components/ui/image-uploader";
-import { getAdminDashboardStats, updateMandalStatusAdmin, updatePlatformSettings, updateMandalAdmin } from "@/actions/adminActions";
+import { getAdminDashboardStats, updateMandalStatusAdmin, updatePlatformSettings, updateMandalAdmin, deleteMandalAdmin } from "@/actions/adminActions";
 import { slugify } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -90,6 +90,22 @@ export default function AdminDashboardPage() {
       }
     } catch (err) {
       toast.error("त्रुटी आली.");
+    }
+  };
+
+  const handleDeleteMandal = async (id, name) => {
+    if (confirm(`तुम्हाला नक्की '${name}' हे मंडळ व त्याची संपूर्ण माहिती कायमस्वरूपी हटवायची (Delete) आहे का?`)) {
+      try {
+        const res = await deleteMandalAdmin(id);
+        if (res.success) {
+          toast.success(`'${name}' मंडळ यशस्वीरीत्या हटवले गेले!`);
+          fetchStats();
+        } else {
+          toast.error(res.error || "हटवता आले नाही.");
+        }
+      } catch (err) {
+        toast.error("त्रुटी आली.");
+      }
     }
   };
 
@@ -246,16 +262,19 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <header className="bg-gray-950 text-white py-10 px-4 sm:px-8 border-b-4 border-amber-500">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="golden" className="px-3 py-1 text-xs font-bold">सुपर ॲडमिन पॅनेल (अनलॉक)</Badge>
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="Logo" className="w-12 h-12" />
+            <div>
+              <div className="flex items-center gap-2">
+                <Badge variant="golden" className="px-3 py-1 text-xs font-bold">सुपर ॲडमिन पॅनेल (अनलॉक)</Badge>
+              </div>
+              <h1 className="text-3xl font-extrabold font-marathi-heading mt-1">
+                गणेश मंडळ अर्ज तपासणी, लिंक जनरेशन व पूर्ण संपादन कक्ष
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5 font-medium">
+                नवीन अर्जांची पडताळणी करा, युनिक लिंक (Slug) जनरेट करा, सर्व ८ टप्पे एडिट करा व मंडळ हटवा.
+              </p>
             </div>
-            <h1 className="text-3xl font-extrabold font-marathi-heading mt-2">
-              गणेश मंडळ अर्ज तपासणी, लिंक जनरेशन व पूर्ण संपादन कक्ष
-            </h1>
-            <p className="text-gray-400 text-sm mt-1 font-medium">
-              नवीन अर्जांची पडताळणी करा, युनिक लिंक (Slug) जनरेट करा, सर्व ८ टप्पे एडिट करा व QR Code डाऊनलोड करा.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -297,7 +316,7 @@ export default function AdminDashboardPage() {
           </Card>
 
           <Card className="p-5 border-rose-200 bg-rose-50/60">
-            <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">नाकारलेले (Rejected)</span>
+            <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">नाकारलेले / ब्लॉक (Rejected)</span>
             <span className="text-3xl font-extrabold font-marathi-heading text-rose-600 mt-1 block">{stats.rejected}</span>
           </Card>
         </div>
@@ -333,8 +352,6 @@ export default function AdminDashboardPage() {
             </div>
           ) : (
             paginatedMandals.map((mandal) => {
-              const portalUrl = typeof window !== "undefined" ? `${window.location.origin}/mandal/${mandal.slug}` : `/mandal/${mandal.slug}`;
-
               return (
                 <Card key={mandal.id} className="p-6 rounded-3xl border-amber-200 hover:border-amber-400 transition-all">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -346,7 +363,7 @@ export default function AdminDashboardPage() {
                           {mandal.name}
                         </h3>
                         <Badge variant={mandal.status === "APPROVED" ? "approved" : mandal.status === "PENDING" ? "pending" : "rejected"}>
-                          {mandal.status === "APPROVED" ? "मंजूर (Approved)" : mandal.status === "PENDING" ? "प्रलंबित (Pending)" : "नाकारले (Rejected)"}
+                          {mandal.status === "APPROVED" ? "मंजूर (Web Link Active)" : mandal.status === "PENDING" ? "प्रलंबित (Link Blocked)" : "नाकारले (Link Blocked)"}
                         </Badge>
                       </div>
 
@@ -375,17 +392,17 @@ export default function AdminDashboardPage() {
 
                         <div className="space-y-1 sm:text-right">
                           <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">
-                            पेमेंट UTR:
+                            पेमेंट UTR Reference:
                           </span>
                           <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300 inline-block">
-                            {mandal.registrationFeeTxnId || "पूर्ण"}
+                            {mandal.registrationFeeTxnId || "माहिती उपलब्ध नाही"}
                           </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Right Actions */}
-                    <div className="flex flex-wrap items-center gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                       
                       {/* Full 8-Step Edit Button */}
                       <button
@@ -393,20 +410,20 @@ export default function AdminDashboardPage() {
                           setEditingMandal({ ...mandal });
                           setActiveStepTab(1);
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors shadow-md"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors shadow-md"
                       >
                         <Edit className="w-4 h-4" />
-                        संपूर्ण ८ टप्पे संपादन (Full Edit)
+                        संपादन (Edit)
                       </button>
 
                       <Link href={`/mandal/${mandal.slug}`} target="_blank">
                         <Button variant="outline" size="sm" className="gap-1 text-xs font-bold">
                           <Eye className="w-3.5 h-3.5" />
-                          पोर्टल पहा
+                          पूर्वदृश्य (View)
                         </Button>
                       </Link>
 
-                      {mandal.status !== "APPROVED" && (
+                      {mandal.status !== "APPROVED" ? (
                         <Button
                           onClick={() => handleStatusUpdate(mandal.id, "APPROVED")}
                           variant="golden"
@@ -416,9 +433,7 @@ export default function AdminDashboardPage() {
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-950" />
                           मंजूर करा (Approve)
                         </Button>
-                      )}
-
-                      {mandal.status !== "REJECTED" && (
+                      ) : (
                         <Button
                           onClick={() => handleStatusUpdate(mandal.id, "REJECTED")}
                           variant="destructive"
@@ -426,7 +441,7 @@ export default function AdminDashboardPage() {
                           className="gap-1 text-xs font-bold"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          नाकारा
+                          ब्लॉक करा (Reject)
                         </Button>
                       )}
 
@@ -437,7 +452,7 @@ export default function AdminDashboardPage() {
                         className="gap-1 text-xs font-bold"
                       >
                         <Copy className="w-3.5 h-3.5" />
-                        लिंक कॉपी करा
+                        लिंक कॉपी
                       </Button>
 
                       <Button
@@ -447,8 +462,21 @@ export default function AdminDashboardPage() {
                         className="gap-1 text-xs font-bold"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        QR Code डाउनलोड करा
+                        QR Code
                       </Button>
+
+                      {/* Delete Mandal Button */}
+                      <Button
+                        onClick={() => handleDeleteMandal(mandal.id, mandal.name)}
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1 text-xs font-bold bg-red-700 hover:bg-red-800"
+                        title="मंडळ कायमस्वरूपी हटवा"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        हटवा (Delete)
+                      </Button>
+
                     </div>
 
                   </div>
@@ -892,7 +920,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-1 md:col-span-2">
-                      <label className="text-xs font-bold text-gray-800">गूगल मॅप Embed URL</label>
+                      <label className="text-xs font-bold text-gray-800">गूगल मॅप Embed URL / Link</label>
                       <Input
                         value={editingMandal.googleMapUrl || ""}
                         onChange={(e) => setEditingMandal({ ...editingMandal, googleMapUrl: e.target.value })}
@@ -956,9 +984,9 @@ export default function AdminDashboardPage() {
                         onChange={(e) => setEditingMandal({ ...editingMandal, status: e.target.value })}
                         className="w-full h-10 px-3 rounded-xl border border-amber-300 bg-white font-bold text-sm"
                       >
-                        <option value="PENDING">प्रलंबित (PENDING)</option>
-                        <option value="APPROVED">मंजूर (APPROVED)</option>
-                        <option value="REJECTED">नाकारले (REJECTED)</option>
+                        <option value="PENDING">प्रलंबित (PENDING - Link Disabled)</option>
+                        <option value="APPROVED">मंजूर (APPROVED - Link Active)</option>
+                        <option value="REJECTED">नाकारले (REJECTED - Link Blocked)</option>
                       </select>
                     </div>
                   </div>
