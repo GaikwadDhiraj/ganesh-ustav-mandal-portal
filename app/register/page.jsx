@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload, CreditCard, CheckCircle2 } from "lucide-react";
+import { Sparkles, Plus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, QrCode, MapPin, Image as ImageIcon, Users, Calendar, Upload, CreditCard, Phone, Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,7 @@ export default function RegisterMandalPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [submittedSlug, setSubmittedSlug] = useState(null);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Platform Admin Payment Settings
   const [platformSettings, setPlatformSettings] = useState({
@@ -169,37 +170,101 @@ export default function RegisterMandalPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-amber-500/20 via-white to-amber-50 flex items-center justify-center p-4 font-marathi">
         <Card className="max-w-xl w-full text-center p-8 border-2 border-amber-300 shadow-2xl rounded-3xl space-y-6">
-          <div className="w-20 h-20 rounded-full bg-emerald-500 text-white mx-auto flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/30">
+          <div className="w-20 h-20 rounded-full bg-emerald-500 text-white mx-auto flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/30 font-bold">
             ✓
           </div>
+          
           <h2 className="text-3xl font-extrabold font-marathi-heading text-gray-900">
-            मंडळाची नोंदणी यशस्वी!
+            मंडळाचा अर्ज नोंदवला गेला आहे!
           </h2>
-          <p className="text-gray-600 text-base font-medium">
-            तुमचा अर्ज ॲडमिन मंजुरीसाठी पाठवला गेला आहे. ॲडमिन पडताळणीनंतर तुमचा वेब पोर्टल खालील लिंकवर सक्रिय होईल.
-          </p>
 
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left space-y-2">
-            <span className="text-xs text-amber-800 font-bold uppercase tracking-wider block">पोर्टल लिंक (Preview URL):</span>
-            <code className="text-sm font-mono font-bold text-orange-700 block break-all bg-white p-2 rounded-xl border border-amber-300">
+          <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-2 text-left">
+            <span className="text-xs text-amber-900 font-extrabold uppercase tracking-wider block">ॲडमिन सूचना (Admin Notice):</span>
+            <p className="text-base text-gray-800 font-bold">
+              ॲडमिन लवकरच तुमच्याशी संपर्क साधतील व तुमचा अधिकृत वेब पोर्टल सक्रिय करतील.
+            </p>
+            <p className="text-xs text-gray-600 font-medium">
+              (Admin will contact you soon and activate your official web portal.)
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-amber-200 text-left space-y-1">
+            <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block">तुमच्या मंडळाचा नोंदणीकृत Slug (URL):</span>
+            <code className="text-sm font-mono font-bold text-orange-700 block break-all">
               /mandal/{submittedSlug}
             </code>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <Link href={`/mandal/${submittedSlug}`} className="w-full">
-              <Button variant="golden" className="w-full justify-center gap-2 font-bold">
-                वेब पोर्टल पूर्वदृश्य (Preview) पहा
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/admin" className="w-full">
-              <Button variant="outline" className="w-full justify-center font-bold">
-                ॲडमिन पॅनेलमध्ये जा (Approve करा)
-              </Button>
+          {/* Single Contact Details Button (Previous 2 buttons removed) */}
+          <div className="pt-2">
+            <Button
+              onClick={() => setShowContactModal(true)}
+              variant="golden"
+              className="w-full justify-center gap-2.5 py-3.5 text-base font-bold shadow-xl"
+            >
+              <Phone className="w-5 h-5 text-amber-950" />
+              संपर्क माहिती / मदतीसाठी संपर्क साधण्यासाठी येथे क्लिक करा (Contact Details)
+            </Button>
+          </div>
+
+          <div className="pt-2 text-center">
+            <Link href="/" className="text-xs font-bold text-amber-800 hover:underline">
+              ← मुख्य पृष्ठावर जा (Home)
             </Link>
           </div>
         </Card>
+
+        {/* Contact Details Modal */}
+        {showContactModal && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white max-w-md w-full p-6 rounded-3xl border-4 border-amber-400 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b pb-3">
+                <h3 className="text-xl font-bold font-marathi-heading text-gray-900">
+                  अधिकृत संपर्क माहिती (Support Team)
+                </h3>
+                <button onClick={() => setShowContactModal(false)} className="p-1 text-gray-400 hover:text-red-600">
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-gray-600 font-medium">
+                  तुमच्या अर्जाच्या स्थितीबद्दल किंवा मदतीसाठी खालील क्रमांकांवर संपर्क साधा:
+                </p>
+
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
+                  <span className="text-xs font-bold text-amber-900 block">मुख्य संपर्क अधिकारी / ॲडमिन:</span>
+                  <a href="tel:8600570542" className="text-sm font-mono font-bold text-orange-700 block hover:underline">
+                    📞 धिरज गायकवाड - +91 8600570542
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 text-xs font-bold text-gray-700">
+                  <div className="p-2.5 bg-gray-50 rounded-lg border">
+                    <span>काउस्तुभ रोंगे:</span> <span className="font-mono text-amber-900">+91 7498444684</span>
+                  </div>
+                  <div className="p-2.5 bg-gray-50 rounded-lg border">
+                    <span>विजय पाटील:</span> <span className="font-mono text-amber-900">+91 7620198805</span>
+                  </div>
+                  <div className="p-2.5 bg-gray-50 rounded-lg border">
+                    <span>विवेक पवार:</span> <span className="font-mono text-amber-900">+91 9890528006</span>
+                  </div>
+                  <div className="p-2.5 bg-gray-50 rounded-lg border">
+                    <span>दीपक पवार:</span> <span className="font-mono text-amber-900">+91 8669233747</span>
+                  </div>
+                  <div className="p-2.5 bg-gray-50 rounded-lg border">
+                    <span>अथर्व मालवदे:</span> <span className="font-mono text-amber-900">+91 9322027844</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button onClick={() => setShowContactModal(false)} variant="outline" className="w-full font-bold">
+                बंद करा
+              </Button>
+            </div>
+          </div>
+        )}
+
       </main>
     );
   }

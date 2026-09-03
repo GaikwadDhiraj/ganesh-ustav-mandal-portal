@@ -6,6 +6,26 @@ import { DEMO_MANDALS } from "@/lib/defaultData";
 
 let inMemoryMandals = [...DEMO_MANDALS];
 
+export async function generateUniqueSlug(baseName, city = "", estYear = "") {
+  const baseSlug = slugify(`${baseName} ${city} ${estYear}`);
+  let candidate = baseSlug;
+  let counter = 1;
+
+  while (true) {
+    let existing = null;
+    try {
+      existing = await prisma.mandal.findUnique({ where: { slug: candidate } });
+    } catch (e) {
+      existing = inMemoryMandals.find(m => m.slug === candidate);
+    }
+    if (!existing) {
+      return candidate;
+    }
+    candidate = `${baseSlug}-${counter}`;
+    counter++;
+  }
+}
+
 export async function registerMandal(formData) {
   try {
     const name = formData.name;
@@ -42,8 +62,8 @@ export async function registerMandal(formData) {
     const aboutHighlight4Title = formData.aboutHighlight4Title || "एकजूट व कार्यकर्ते";
     const aboutHighlight4Desc  = formData.aboutHighlight4Desc  || "तरुणांची भक्कम साथ व सर्वधर्मीय बंधुभाव.";
 
-    const rawSlug = slugify(name);
-    let slug = rawSlug;
+    // Generate Transliterated Unique English Slug
+    const slug = await generateUniqueSlug(name, city, establishedYear);
 
     // Parse sub-arrays
     const events = formData.events || [];
